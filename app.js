@@ -1,24 +1,61 @@
-// Smartphone Tycoon - app.js (proto robuste iOS)
-// - pas de structuredClone (fallback)
-// - pas de module nécessaire
-// - init intro fiable
+// Smartphone Tycoon - app.js (full skin theme)
+// Compatible iOS : pas de module, pas de structuredClone, pas de color-mix
 
 const LS_KEYS = {
   companyName: "st_companyName",
-  brandPrimary: "st_brandPrimary",
-  brandSecondary: "st_brandSecondary",
+  theme: "st_theme",
   state: "st_state_v1"
 };
 
-const PALETTES = [
-  ["#6c7cff","#8f9bff"],
-  ["#0f2027","#2c5364"],
-  ["#000000","#c9a227"],
-  ["#8e2de2","#ff416c"],
-  ["#11998e","#38ef7d"],
-  ["#485563","#29323c"],
-  ["#7f00ff","#e100ff"],
-  ["#1e3c72","#2a5298"]
+const THEMES = [
+  { // 1 - Indigo / Lime
+    name:"Indigo/Lime",
+    accent:"#6c7cff", accent2:"#b6ff5a",
+    bg:"#0b0f18", panel:"#121827", interactive:"#1b2242",
+    border:"#2a3356", text:"#e6e9f2", muted:"#9aa3bd"
+  },
+  { // 2 - Navy / Coral
+    name:"Navy/Coral",
+    accent:"#2a5bd7", accent2:"#ff6b6b",
+    bg:"#07101f", panel:"#101a2d", interactive:"#182749",
+    border:"#243a63", text:"#eaf0ff", muted:"#a2acc8"
+  },
+  { // 3 - Black / Gold (premium)
+    name:"Black/Gold",
+    accent:"#c9a227", accent2:"#ffe08a",
+    bg:"#07080b", panel:"#0f1116", interactive:"#171a22",
+    border:"#2a2f3d", text:"#f2f2f2", muted:"#b6b6b6"
+  },
+  { // 4 - Purple / Cyan
+    name:"Purple/Cyan",
+    accent:"#a855f7", accent2:"#22d3ee",
+    bg:"#090818", panel:"#14122a", interactive:"#1d1a3b",
+    border:"#2e2a55", text:"#f3f1ff", muted:"#b9b3df"
+  },
+  { // 5 - Emerald / Amber
+    name:"Emerald/Amber",
+    accent:"#10b981", accent2:"#f59e0b",
+    bg:"#07110f", panel:"#0e1a17", interactive:"#122824",
+    border:"#1f3a35", text:"#eafff7", muted:"#a7d2c7"
+  },
+  { // 6 - Steel / Electric
+    name:"Steel/Electric",
+    accent:"#60a5fa", accent2:"#93c5fd",
+    bg:"#0a0f16", panel:"#141a22", interactive:"#1c2430",
+    border:"#2b3746", text:"#eef5ff", muted:"#a7b4c7"
+  },
+  { // 7 - Magenta / Orange
+    name:"Magenta/Orange",
+    accent:"#ff3bbf", accent2:"#ff9f1c",
+    bg:"#0f0710", panel:"#1a0f1a", interactive:"#241224",
+    border:"#3a1f3a", text:"#fff1fb", muted:"#d7a8c9"
+  },
+  { // 8 - Teal / Violet
+    name:"Teal/Violet",
+    accent:"#14b8a6", accent2:"#8b5cf6",
+    bg:"#071112", panel:"#0f1a1a", interactive:"#132525",
+    border:"#1f3c3c", text:"#eaffff", muted:"#a6d1d1"
+  },
 ];
 
 const DEFAULT_STATE = {
@@ -51,12 +88,7 @@ const DEFAULT_STATE = {
   channel: "retail"
 };
 
-// clone compatible partout (iOS inclus)
-function deepClone(obj){
-  return JSON.parse(JSON.stringify(obj));
-}
-
-let state = loadState();
+function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
 
 // ------------------ DOM helpers ------------------
 const $ = (id) => document.getElementById(id);
@@ -70,6 +102,8 @@ const UI = {
   header: $("header"),
   main: $("main"),
   nav: $("nav"),
+
+  companyTitle: $("company-title"),
 
   kpiDate: $("kpi-date"),
   kpiBrand: $("kpi-brand"),
@@ -106,20 +140,67 @@ const UI = {
   btnNext: $("btn-next"),
 };
 
+let state = loadState();
+let eventsBound = false;
+
+// ------------------ Theme ------------------
+function getStoredTheme(){
+  try{
+    const raw = localStorage.getItem(LS_KEYS.theme);
+    if (!raw) return THEMES[0];
+    const t = JSON.parse(raw);
+    // sécurité: s'assurer qu'on a les champs
+    if (!t || !t.accent || !t.bg) return THEMES[0];
+    return t;
+  } catch { return THEMES[0]; }
+}
+
+function applyTheme(t){
+  const root = document.documentElement.style;
+
+  root.setProperty("--accent", t.accent);
+  root.setProperty("--accent2", t.accent2);
+
+  root.setProperty("--bg", t.bg);
+  root.setProperty("--panel", t.panel);
+  root.setProperty("--interactive", t.interactive);
+  root.setProperty("--border", t.border);
+
+  root.setProperty("--text", t.text);
+  root.setProperty("--muted", t.muted);
+
+  // dérivés visibles (sans color-mix)
+  // border/focus/action basés sur accent
+  root.setProperty("--action-border", hexToRgba(t.accent, 0.55));
+  root.setProperty("--action-border-strong", hexToRgba(t.accent, 0.85));
+  root.setProperty("--focus-ring", hexToRgba(t.accent, 0.30));
+}
+
+function hexToRgba(hex, a){
+  const h = hex.replace("#","").trim();
+  const full = h.length === 3 ? h.split("").map(c=>c+c).join("") : h;
+  const r = parseInt(full.slice(0,2),16);
+  const g = parseInt(full.slice(2,4),16);
+  const b = parseInt(full.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 // ------------------ Intro ------------------
+function hasCompany(){
+  return !!localStorage.getItem(LS_KEYS.companyName);
+}
+
 function initIntro(){
-  if (!UI.paletteGrid || !UI.startBtn || !UI.companyName) {
-    console.error("Intro DOM manquant (ids).");
-    return;
-  }
-
   UI.paletteGrid.innerHTML = "";
-  let selected = PALETTES[0];
+  let selected = THEMES[0];
 
-  PALETTES.forEach((colors, idx) => {
+  // pré-apply pour l'aperçu
+  applyTheme(selected);
+
+  THEMES.forEach((theme, idx) => {
     const div = document.createElement("div");
     div.className = "palette";
-    div.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+    div.style.background = `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`;
 
     const dot = document.createElement("span");
     dot.className = "dot";
@@ -128,29 +209,20 @@ function initIntro(){
     div.addEventListener("click", () => {
       UI.paletteGrid.querySelectorAll(".palette").forEach(p => p.classList.remove("selected"));
       div.classList.add("selected");
-      selected = colors;
-
-      // preview live
-      document.documentElement.style.setProperty("--brand-primary", colors[0]);
-      document.documentElement.style.setProperty("--brand-secondary", colors[1]);
+      selected = theme;
+      applyTheme(selected);
     });
 
-    // pré-sélection
     if (idx === 0) div.classList.add("selected");
     UI.paletteGrid.appendChild(div);
   });
-
-  // preview palette 0
-  document.documentElement.style.setProperty("--brand-primary", selected[0]);
-  document.documentElement.style.setProperty("--brand-secondary", selected[1]);
 
   UI.startBtn.onclick = () => {
     const name = (UI.companyName.value || "").trim();
     if (!name) return alert("Choisis un nom d'entreprise.");
 
     localStorage.setItem(LS_KEYS.companyName, name);
-    localStorage.setItem(LS_KEYS.brandPrimary, selected[0]);
-    localStorage.setItem(LS_KEYS.brandSecondary, selected[1]);
+    localStorage.setItem(LS_KEYS.theme, JSON.stringify(selected));
 
     startGame();
   };
@@ -160,24 +232,16 @@ function initIntro(){
   };
 }
 
-function hasCompany(){
-  return !!localStorage.getItem(LS_KEYS.companyName);
-}
-
-function applyBrandFromStorage(){
-  const p = localStorage.getItem(LS_KEYS.brandPrimary) || "#6c7cff";
-  const s = localStorage.getItem(LS_KEYS.brandSecondary) || "#8f9bff";
-  document.documentElement.style.setProperty("--brand-primary", p);
-  document.documentElement.style.setProperty("--brand-secondary", s);
-}
-
 function startGame(){
-  applyBrandFromStorage();
+  applyTheme(getStoredTheme());
 
-  if (UI.intro) UI.intro.style.display = "none";
-  if (UI.header) UI.header.style.display = "block";
-  if (UI.main) UI.main.style.display = "block";
-  if (UI.nav) UI.nav.style.display = "flex";
+  UI.intro.style.display = "none";
+  UI.header.style.display = "block";
+  UI.main.style.display = "block";
+  UI.nav.style.display = "flex";
+
+  const name = localStorage.getItem(LS_KEYS.companyName) || "Entreprise";
+  UI.companyTitle.textContent = name;
 
   bindEvents();
   renderAll();
@@ -196,54 +260,49 @@ function showScreen(name){
   Object.values(screens).forEach(s => { if (s) s.style.display = "none"; });
   if (screens[name]) screens[name].style.display = "block";
 
-  if (UI.nav) {
-    UI.nav.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-    const btn = UI.nav.querySelector(`button[data-screen="${name}"]`);
-    if (btn) btn.classList.add("active");
-  }
+  UI.nav.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  UI.nav.querySelector(`button[data-screen="${name}"]`)?.classList.add("active");
 }
 
 // ------------------ Events ------------------
-let eventsBound = false;
 function bindEvents(){
   if (eventsBound) return;
   eventsBound = true;
 
   // nav
-  UI.nav?.querySelectorAll("button[data-screen]")?.forEach(btn => {
+  UI.nav.querySelectorAll("button[data-screen]").forEach(btn => {
     btn.addEventListener("click", () => showScreen(btn.dataset.screen));
   });
 
   // product
-  UI.tier?.addEventListener("change", () => { state.tier = UI.tier.value; renderAll(); });
-  UI.perf?.addEventListener("input", () => { state.quality = toInt(UI.perf.value); renderAll(); });
-  UI.price?.addEventListener("input", () => { state.price = toInt(UI.price.value); renderAll(); });
-  UI.rnd?.addEventListener("input", () => { state.rnd = toInt(UI.rnd.value); renderAll(); });
-  UI.osMode?.addEventListener("change", () => { state.osMode = UI.osMode.value; renderAll(); });
+  UI.tier.addEventListener("change", () => { state.tier = UI.tier.value; renderAll(); });
+  UI.perf.addEventListener("input", () => { state.quality = toInt(UI.perf.value); renderAll(); });
+  UI.price.addEventListener("input", () => { state.price = toInt(UI.price.value); renderAll(); });
+  UI.rnd.addEventListener("input", () => { state.rnd = toInt(UI.rnd.value); renderAll(); });
+  UI.osMode.addEventListener("change", () => { state.osMode = UI.osMode.value; renderAll(); });
 
   // production
-  UI.capacity?.addEventListener("input", () => { state.capacity = toInt(UI.capacity.value); renderAll(); });
-  UI.qprocess?.addEventListener("input", () => { state.qprocess = toInt(UI.qprocess.value); renderAll(); });
-  UI.stock?.addEventListener("input", () => { state.stock = toInt(UI.stock.value); renderAll(); });
-  UI.buy?.addEventListener("input", () => { state.buy = toInt(UI.buy.value); renderAll(); });
+  UI.capacity.addEventListener("input", () => { state.capacity = toInt(UI.capacity.value); renderAll(); });
+  UI.qprocess.addEventListener("input", () => { state.qprocess = toInt(UI.qprocess.value); renderAll(); });
+  UI.stock.addEventListener("input", () => { state.stock = toInt(UI.stock.value); renderAll(); });
+  UI.buy.addEventListener("input", () => { state.buy = toInt(UI.buy.value); renderAll(); });
 
   // market
-  UI.mkt?.addEventListener("input", () => { state.marketing = toInt(UI.mkt.value); renderAll(); });
-  UI.channel?.addEventListener("change", () => { state.channel = UI.channel.value; renderAll(); });
+  UI.mkt.addEventListener("input", () => { state.marketing = toInt(UI.mkt.value); renderAll(); });
+  UI.channel.addEventListener("change", () => { state.channel = UI.channel.value; renderAll(); });
 
   // save/reset/next
-  UI.btnSave?.addEventListener("click", () => { saveState(); toast("Sauvegardé."); });
+  UI.btnSave.addEventListener("click", () => { saveState(); toast("Sauvegardé."); });
 
-  UI.btnReset?.addEventListener("click", () => {
+  UI.btnReset.addEventListener("click", () => {
     if (!confirm("Reset complet ? (Entreprise + partie)")) return;
     localStorage.removeItem(LS_KEYS.companyName);
-    localStorage.removeItem(LS_KEYS.brandPrimary);
-    localStorage.removeItem(LS_KEYS.brandSecondary);
+    localStorage.removeItem(LS_KEYS.theme);
     localStorage.removeItem(LS_KEYS.state);
     location.reload();
   });
 
-  UI.btnNext?.addEventListener("click", () => nextQuarter());
+  UI.btnNext.addEventListener("click", () => nextQuarter());
 
   // tooltips
   document.addEventListener("click", (e) => {
@@ -255,7 +314,7 @@ function bindEvents(){
   });
 }
 
-// ------------------ Game logic ------------------
+// ------------------ Game logic (simple) ------------------
 function computeProductAttractiveness(){
   const tierIdealPrice = (state.tier === "budget") ? 199 : (state.tier === "premium" ? 799 : 399);
   const pricePenalty = clamp(Math.abs(state.price - tierIdealPrice) / tierIdealPrice, 0, 1) * 35;
@@ -333,30 +392,34 @@ function maybeChangeMarket(){
 function nextQuarter(){
   updateOSProgress();
 
+  // achat composants
   const componentCost = 65;
   const buyUnits = Math.max(0, toInt(state.buy));
   const buyCost = buyUnits * componentCost;
   state.stock += buyUnits;
   state.cash -= buyCost;
 
+  // demande & ventes
   const attract = computeProductAttractiveness();
   const demand = computeDemand(attract);
-
   const canMake = Math.max(0, Math.min(state.capacity, state.stock));
   const sold = Math.max(0, Math.min(demand, canMake));
   state.stock -= sold;
 
+  // coûts & revenus
   const royaltyPerUnit = (state.osMode === "license") ? 18 : 0;
   const unitCost = 140 + (state.quality * 0.6) + royaltyPerUnit;
   const revenue = sold * state.price;
   const cogs = sold * unitCost;
 
+  // sav
   const dRate = defectRate();
   const defects = Math.round(sold * dRate);
   const warrantyCost = defects * 55;
 
   state.cash += revenue - cogs - warrantyCost - state.rnd - state.marketing;
 
+  // réputation
   const repDelta =
     (attract >= 70 ? 1 : (attract < 45 ? -1 : 0)) +
     (defects > sold * 0.08 ? -2 : 0) +
@@ -364,6 +427,7 @@ function nextQuarter(){
 
   state.reputation = clamp(state.reputation + repDelta, 0, 100);
 
+  // parts de marché / valo
   const soldScore = sold / 12000;
   state.share = clamp(state.share + (soldScore * 1.2) - 0.3, 0.5, 65);
 
@@ -371,11 +435,13 @@ function nextQuarter(){
   const profitFactor = clamp(profit / 400000, -1, 2);
   state.mcap = Math.max(200000, Math.round(state.mcap * (1.0 + profitFactor * 0.03 + (repDelta * 0.002))));
 
+  // temps
   state.q += 1;
   if (state.q === 5) { state.q = 1; state.year += 1; }
 
   maybeChangeMarket();
 
+  // report
   const reportLines = [];
   reportLines.push(`Entreprise : ${localStorage.getItem(LS_KEYS.companyName) || "—"}`);
   reportLines.push(`Période : ${state.year} Q${state.q === 1 ? 4 : state.q - 1}`);
@@ -394,7 +460,7 @@ function nextQuarter(){
   reportLines.push(`Parts de marché : ${state.share.toFixed(1)}%`);
   reportLines.push(`Valorisation : ${fmtMoney(state.mcap)}`);
 
-  if (UI.report) UI.report.textContent = reportLines.join("\n");
+  UI.report.textContent = reportLines.join("\n");
 
   saveState();
   renderAll();
@@ -403,8 +469,6 @@ function nextQuarter(){
 
 // ------------------ Render ------------------
 function renderAll(){
-  if (!UI.kpiDate) return;
-
   UI.kpiDate.textContent = `Année : ${state.year} / Trimestre : Q${state.q}`;
   UI.kpiBrand.textContent = `${state.reputation}`;
   UI.kpiCash.textContent = fmtMoney(state.cash);
@@ -439,16 +503,14 @@ function renderAll(){
   UI.marketReadout.textContent =
 `Conjoncture : ${marketLabel(state.market)} (impact global x${state.macroMul.toFixed(2)})
 Attractivité : ${attract}/100
-Objectif : optimiser l'équilibre marge (prix) / volume (demande) / qualité (SAV & réputation).`;
+Objectif : équilibrer marge (prix) / volume (demande) / qualité (SAV & réputation).`;
 
   const devRow = document.getElementById("dev-row");
   if (devRow) devRow.style.opacity = (state.osMode === "license") ? "0.55" : "1.0";
 }
 
 // ------------------ Storage ------------------
-function saveState(){
-  localStorage.setItem(LS_KEYS.state, JSON.stringify(state));
-}
+function saveState(){ localStorage.setItem(LS_KEYS.state, JSON.stringify(state)); }
 
 function loadState(){
   try{
@@ -511,21 +573,21 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
-function toast(msg){
-  showTip("Info", msg);
-}
+function toast(msg){ showTip("Info", msg); }
 
 // ------------------ Boot ------------------
 window.addEventListener("DOMContentLoaded", () => {
-  // debug utile si jamais : tu verras "JS OK" en console
-  console.log("JS OK");
+  // applique le thème au plus tôt (même avant intro)
+  applyTheme(getStoredTheme());
 
   if (hasCompany()){
-    applyBrandFromStorage();
     UI.intro.style.display = "none";
     UI.header.style.display = "block";
     UI.main.style.display = "block";
     UI.nav.style.display = "flex";
+
+    UI.companyTitle.textContent = localStorage.getItem(LS_KEYS.companyName) || "Entreprise";
+
     bindEvents();
     renderAll();
     showScreen("product");
