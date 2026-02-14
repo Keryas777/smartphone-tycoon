@@ -1,5 +1,6 @@
-// Smartphone Tycoon - app.js (full skin theme)
-// Compatible iOS : pas de module, pas de structuredClone, pas de color-mix
+// Smartphone Tycoon - app.js (patchs + chips)
+// - Patch 3: theme-color dynamique iOS
+// - Chips: tier + stratégie OS
 
 const LS_KEYS = {
   companyName: "st_companyName",
@@ -8,54 +9,14 @@ const LS_KEYS = {
 };
 
 const THEMES = [
-  { // 1 - Indigo / Lime
-    name:"Indigo/Lime",
-    accent:"#6c7cff", accent2:"#b6ff5a",
-    bg:"#0b0f18", panel:"#121827", interactive:"#1b2242",
-    border:"#2a3356", text:"#e6e9f2", muted:"#9aa3bd"
-  },
-  { // 2 - Navy / Coral
-    name:"Navy/Coral",
-    accent:"#2a5bd7", accent2:"#ff6b6b",
-    bg:"#07101f", panel:"#101a2d", interactive:"#182749",
-    border:"#243a63", text:"#eaf0ff", muted:"#a2acc8"
-  },
-  { // 3 - Black / Gold (premium)
-    name:"Black/Gold",
-    accent:"#c9a227", accent2:"#ffe08a",
-    bg:"#07080b", panel:"#0f1116", interactive:"#171a22",
-    border:"#2a2f3d", text:"#f2f2f2", muted:"#b6b6b6"
-  },
-  { // 4 - Purple / Cyan
-    name:"Purple/Cyan",
-    accent:"#a855f7", accent2:"#22d3ee",
-    bg:"#090818", panel:"#14122a", interactive:"#1d1a3b",
-    border:"#2e2a55", text:"#f3f1ff", muted:"#b9b3df"
-  },
-  { // 5 - Emerald / Amber
-    name:"Emerald/Amber",
-    accent:"#10b981", accent2:"#f59e0b",
-    bg:"#07110f", panel:"#0e1a17", interactive:"#122824",
-    border:"#1f3a35", text:"#eafff7", muted:"#a7d2c7"
-  },
-  { // 6 - Steel / Electric
-    name:"Steel/Electric",
-    accent:"#60a5fa", accent2:"#93c5fd",
-    bg:"#0a0f16", panel:"#141a22", interactive:"#1c2430",
-    border:"#2b3746", text:"#eef5ff", muted:"#a7b4c7"
-  },
-  { // 7 - Magenta / Orange
-    name:"Magenta/Orange",
-    accent:"#ff3bbf", accent2:"#ff9f1c",
-    bg:"#0f0710", panel:"#1a0f1a", interactive:"#241224",
-    border:"#3a1f3a", text:"#fff1fb", muted:"#d7a8c9"
-  },
-  { // 8 - Teal / Violet
-    name:"Teal/Violet",
-    accent:"#14b8a6", accent2:"#8b5cf6",
-    bg:"#071112", panel:"#0f1a1a", interactive:"#132525",
-    border:"#1f3c3c", text:"#eaffff", muted:"#a6d1d1"
-  },
+  { name:"Indigo/Lime", accent:"#6c7cff", accent2:"#b6ff5a", bg:"#0b0f18", panel:"#121827", interactive:"#1b2242", border:"#2a3356", text:"#e6e9f2", muted:"#9aa3bd" },
+  { name:"Navy/Coral",   accent:"#2a5bd7", accent2:"#ff6b6b", bg:"#07101f", panel:"#101a2d", interactive:"#182749", border:"#243a63", text:"#eaf0ff", muted:"#a2acc8" },
+  { name:"Black/Gold",   accent:"#c9a227", accent2:"#ffe08a", bg:"#07080b", panel:"#0f1116", interactive:"#171a22", border:"#2a2f3d", text:"#f2f2f2", muted:"#b6b6b6" },
+  { name:"Purple/Cyan",  accent:"#a855f7", accent2:"#22d3ee", bg:"#090818", panel:"#14122a", interactive:"#1d1a3b", border:"#2e2a55", text:"#f3f1ff", muted:"#b9b3df" },
+  { name:"Emerald/Amber",accent:"#10b981", accent2:"#f59e0b", bg:"#07110f", panel:"#0e1a17", interactive:"#122824", border:"#1f3a35", text:"#eafff7", muted:"#a7d2c7" },
+  { name:"Steel/Electric",accent:"#60a5fa",accent2:"#93c5fd", bg:"#0a0f16", panel:"#141a22", interactive:"#1c2430", border:"#2b3746", text:"#eef5ff", muted:"#a7b4c7" },
+  { name:"Magenta/Orange",accent:"#ff3bbf",accent2:"#ff9f1c", bg:"#0f0710", panel:"#1a0f1a", interactive:"#241224", border:"#3a1f3a", text:"#fff1fb", muted:"#d7a8c9" },
+  { name:"Teal/Violet",  accent:"#14b8a6", accent2:"#8b5cf6", bg:"#071112", panel:"#0f1a1a", interactive:"#132525", border:"#1f3c3c", text:"#eaffff", muted:"#a6d1d1" },
 ];
 
 const DEFAULT_STATE = {
@@ -89,8 +50,6 @@ const DEFAULT_STATE = {
 };
 
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
-// ------------------ DOM helpers ------------------
 const $ = (id) => document.getElementById(id);
 
 const UI = {
@@ -112,15 +71,16 @@ const UI = {
   kpiShare: $("kpi-share"),
   kpiMacroText: $("kpi-macro-value"),
 
-  tier: $("product-tier"),
+  tierChips: $("tier-chips"),
+  osChips: $("os-chips"),
+
   perf: $("perf"),
   perfVal: $("perf-val"),
   price: $("price"),
   rnd: $("rnd"),
-  osMode: $("os-mode"),
+
   osMaturity: $("os-maturity"),
   devAttract: $("dev-attract"),
-  devBar: $("dev-bar"),
   prodAttract: $("prod-attract"),
   marketInterest: $("market-interest"),
   btnSave: $("btn-save"),
@@ -149,7 +109,6 @@ function getStoredTheme(){
     const raw = localStorage.getItem(LS_KEYS.theme);
     if (!raw) return THEMES[0];
     const t = JSON.parse(raw);
-    // sécurité: s'assurer qu'on a les champs
     if (!t || !t.accent || !t.bg) return THEMES[0];
     return t;
   } catch { return THEMES[0]; }
@@ -169,11 +128,18 @@ function applyTheme(t){
   root.setProperty("--text", t.text);
   root.setProperty("--muted", t.muted);
 
-  // dérivés visibles (sans color-mix)
-  // border/focus/action basés sur accent
   root.setProperty("--action-border", hexToRgba(t.accent, 0.55));
   root.setProperty("--action-border-strong", hexToRgba(t.accent, 0.85));
   root.setProperty("--focus-ring", hexToRgba(t.accent, 0.30));
+
+  // PATCH 3: theme-color (barre Safari / PWA)
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name","theme-color");
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", t.bg);
 }
 
 function hexToRgba(hex, a){
@@ -186,15 +152,12 @@ function hexToRgba(hex, a){
 }
 
 // ------------------ Intro ------------------
-function hasCompany(){
-  return !!localStorage.getItem(LS_KEYS.companyName);
-}
+function hasCompany(){ return !!localStorage.getItem(LS_KEYS.companyName); }
 
 function initIntro(){
   UI.paletteGrid.innerHTML = "";
   let selected = THEMES[0];
 
-  // pré-apply pour l'aperçu
   applyTheme(selected);
 
   THEMES.forEach((theme, idx) => {
@@ -223,7 +186,6 @@ function initIntro(){
 
     localStorage.setItem(LS_KEYS.companyName, name);
     localStorage.setItem(LS_KEYS.theme, JSON.stringify(selected));
-
     startGame();
   };
 
@@ -240,8 +202,7 @@ function startGame(){
   UI.main.style.display = "block";
   UI.nav.style.display = "flex";
 
-  const name = localStorage.getItem(LS_KEYS.companyName) || "Entreprise";
-  UI.companyTitle.textContent = name;
+  UI.companyTitle.textContent = localStorage.getItem(LS_KEYS.companyName) || "Entreprise";
 
   bindEvents();
   renderAll();
@@ -264,34 +225,49 @@ function showScreen(name){
   UI.nav.querySelector(`button[data-screen="${name}"]`)?.classList.add("active");
 }
 
+// ------------------ Chips ------------------
+function bindChipGroup(container, onPick){
+  if (!container) return;
+  container.querySelectorAll(".chip").forEach(btn => {
+    btn.addEventListener("click", () => onPick(btn.getAttribute("data-value")));
+  });
+}
+
+function setChipActive(container, value){
+  if (!container) return;
+  container.querySelectorAll(".chip").forEach(btn => {
+    const isActive = btn.getAttribute("data-value") === value;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
 // ------------------ Events ------------------
 function bindEvents(){
   if (eventsBound) return;
   eventsBound = true;
 
-  // nav
   UI.nav.querySelectorAll("button[data-screen]").forEach(btn => {
     btn.addEventListener("click", () => showScreen(btn.dataset.screen));
   });
 
-  // product
-  UI.tier.addEventListener("change", () => { state.tier = UI.tier.value; renderAll(); });
+  // CHIPS
+  bindChipGroup(UI.tierChips, (val) => { state.tier = val; renderAll(); });
+  bindChipGroup(UI.osChips, (val) => { state.osMode = val; renderAll(); });
+
+  // sliders / inputs
   UI.perf.addEventListener("input", () => { state.quality = toInt(UI.perf.value); renderAll(); });
   UI.price.addEventListener("input", () => { state.price = toInt(UI.price.value); renderAll(); });
   UI.rnd.addEventListener("input", () => { state.rnd = toInt(UI.rnd.value); renderAll(); });
-  UI.osMode.addEventListener("change", () => { state.osMode = UI.osMode.value; renderAll(); });
 
-  // production
   UI.capacity.addEventListener("input", () => { state.capacity = toInt(UI.capacity.value); renderAll(); });
   UI.qprocess.addEventListener("input", () => { state.qprocess = toInt(UI.qprocess.value); renderAll(); });
   UI.stock.addEventListener("input", () => { state.stock = toInt(UI.stock.value); renderAll(); });
   UI.buy.addEventListener("input", () => { state.buy = toInt(UI.buy.value); renderAll(); });
 
-  // market
   UI.mkt.addEventListener("input", () => { state.marketing = toInt(UI.mkt.value); renderAll(); });
   UI.channel.addEventListener("change", () => { state.channel = UI.channel.value; renderAll(); });
 
-  // save/reset/next
   UI.btnSave.addEventListener("click", () => { saveState(); toast("Sauvegardé."); });
 
   UI.btnReset.addEventListener("click", () => {
@@ -314,7 +290,7 @@ function bindEvents(){
   });
 }
 
-// ------------------ Game logic (simple) ------------------
+// ------------------ Logic (simple) ------------------
 function computeProductAttractiveness(){
   const tierIdealPrice = (state.tier === "budget") ? 199 : (state.tier === "premium" ? 799 : 399);
   const pricePenalty = clamp(Math.abs(state.price - tierIdealPrice) / tierIdealPrice, 0, 1) * 35;
@@ -355,7 +331,6 @@ function updateOSProgress(){
 
   if (state.osMode === "license") {
     state.osMaturity = clamp(state.osMaturity + Math.round(rnd / 150000), 0, 40);
-    state.devEcosystem = clamp(state.devEcosystem + 0, 0, 30);
     return;
   }
 
@@ -442,25 +417,23 @@ function nextQuarter(){
   maybeChangeMarket();
 
   // report
-  const reportLines = [];
-  reportLines.push(`Entreprise : ${localStorage.getItem(LS_KEYS.companyName) || "—"}`);
-  reportLines.push(`Période : ${state.year} Q${state.q === 1 ? 4 : state.q - 1}`);
-  reportLines.push("");
-  reportLines.push(`Ventes : ${fmtInt(sold)} unités (demande: ${fmtInt(demand)}, capacité+stock: ${fmtInt(canMake)})`);
-  reportLines.push(`Défauts/SAV : ${fmtInt(defects)} (${(dRate*100).toFixed(1)}%)`);
-  reportLines.push("");
-  reportLines.push(`Chiffre d'affaires : ${fmtMoney(revenue)}`);
-  reportLines.push(`Coût prod + royalties : ${fmtMoney(cogs)}`);
-  reportLines.push(`SAV : ${fmtMoney(warrantyCost)}`);
-  reportLines.push(`R&D : ${fmtMoney(state.rnd)}`);
-  reportLines.push(`Marketing : ${fmtMoney(state.marketing)}`);
-  reportLines.push("");
-  reportLines.push(`Profit estimé : ${fmtMoney(profit)}`);
-  reportLines.push(`Réputation : ${state.reputation}/100 (${repDelta>=0?"+":""}${repDelta})`);
-  reportLines.push(`Parts de marché : ${state.share.toFixed(1)}%`);
-  reportLines.push(`Valorisation : ${fmtMoney(state.mcap)}`);
+  UI.report.textContent =
+`Entreprise : ${localStorage.getItem(LS_KEYS.companyName) || "—"}
+Période : ${state.year} Q${state.q === 1 ? 4 : state.q - 1}
 
-  UI.report.textContent = reportLines.join("\n");
+Ventes : ${fmtInt(sold)} unités (demande: ${fmtInt(demand)}, capacité+stock: ${fmtInt(canMake)})
+Défauts/SAV : ${fmtInt(defects)} (${(dRate*100).toFixed(1)}%)
+
+CA : ${fmtMoney(revenue)}
+Coût prod + royalties : ${fmtMoney(cogs)}
+SAV : ${fmtMoney(warrantyCost)}
+R&D : ${fmtMoney(state.rnd)}
+Marketing : ${fmtMoney(state.marketing)}
+
+Profit estimé : ${fmtMoney(profit)}
+Réputation : ${state.reputation}/100 (${repDelta>=0?"+":""}${repDelta})
+Parts de marché : ${state.share.toFixed(1)}%
+Valorisation : ${fmtMoney(state.mcap)}`;
 
   saveState();
   renderAll();
@@ -469,6 +442,9 @@ function nextQuarter(){
 
 // ------------------ Render ------------------
 function renderAll(){
+  setChipActive(UI.tierChips, state.tier);
+  setChipActive(UI.osChips, state.osMode);
+
   UI.kpiDate.textContent = `Année : ${state.year} / Trimestre : Q${state.q}`;
   UI.kpiBrand.textContent = `${state.reputation}`;
   UI.kpiCash.textContent = fmtMoney(state.cash);
@@ -476,16 +452,13 @@ function renderAll(){
   UI.kpiShare.textContent = `${state.share.toFixed(1)}%`;
   UI.kpiMacroText.textContent = marketLabel(state.market);
 
-  UI.tier.value = state.tier;
   UI.perf.value = state.quality;
   UI.perfVal.textContent = `${state.quality}`;
   UI.price.value = state.price;
   UI.rnd.value = state.rnd;
-  UI.osMode.value = state.osMode;
 
   UI.osMaturity.textContent = `${state.osMaturity}`;
   UI.devAttract.textContent = `${state.devEcosystem}`;
-  UI.devBar.style.width = `${clamp(state.devEcosystem,0,100)}%`;
 
   UI.capacity.value = state.capacity;
   UI.qprocess.value = state.qprocess;
@@ -504,9 +477,6 @@ function renderAll(){
 `Conjoncture : ${marketLabel(state.market)} (impact global x${state.macroMul.toFixed(2)})
 Attractivité : ${attract}/100
 Objectif : équilibrer marge (prix) / volume (demande) / qualité (SAV & réputation).`;
-
-  const devRow = document.getElementById("dev-row");
-  if (devRow) devRow.style.opacity = (state.osMode === "license") ? "0.55" : "1.0";
 }
 
 // ------------------ Storage ------------------
@@ -544,7 +514,7 @@ function marketLabel(key){
   return "Marché normal";
 }
 
-// ------------------ Tip bubble ------------------
+// ------------------ Tips ------------------
 let tipEl = null;
 function showTip(title, text){
   if (tipEl) tipEl.remove();
@@ -563,7 +533,6 @@ function showTip(title, text){
 
   setTimeout(() => { tipEl?.remove(); tipEl = null; }, 6000);
 }
-
 function escapeHtml(s){
   return String(s)
     .replaceAll("&","&amp;")
@@ -572,12 +541,10 @@ function escapeHtml(s){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
-
 function toast(msg){ showTip("Info", msg); }
 
 // ------------------ Boot ------------------
 window.addEventListener("DOMContentLoaded", () => {
-  // applique le thème au plus tôt (même avant intro)
   applyTheme(getStoredTheme());
 
   if (hasCompany()){
