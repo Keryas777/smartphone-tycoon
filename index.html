@@ -35,6 +35,12 @@
       backdrop-filter: blur(10px);
     }
 
+    /* (2) KPIs plus compacts sur mobile */
+    @media (max-width: 430px){
+      .pill{ padding: 7px 10px; font-size: 11px; }
+      header{ padding: 12px 12px 10px; }
+    }
+
     .top-row{
       display:flex;
       align-items:flex-start;
@@ -93,7 +99,9 @@
       gap: 12px;
       flex-wrap:wrap;
     }
-    .row > *{ flex:1; min-width: 220px; }
+
+    /* (1) Layout plus souple sur mobile/tablette : moins de min-width */
+    .row > *{ flex:1; min-width: 160px; }
 
     label{
       display:block;
@@ -113,6 +121,13 @@
       font-size: 14px;
     }
 
+    /* (1) Select trop long : ellipsis sur iPhone */
+    select{
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     input[type="range"]{
       width:100%;
       height: 38px;
@@ -125,7 +140,7 @@
       box-shadow: 0 0 0 2px rgba(108,124,255,0.28);
     }
 
-    /* --- Zones INFO vs INTERACTION --- */
+    /* Zones INFO vs INTERACTION */
     .info-block{
       background: rgba(15,20,34,0.9);
       border: 1px solid rgba(35,43,69,0.9);
@@ -142,7 +157,7 @@
       margin-top: 12px;
     }
 
-    /* (1) Contrôles plus “clairs” visuellement dans les zones interactives */
+    /* Controls plus clairs (zones interactives) */
     .interactive-block select,
     .interactive-block input[type="number"],
     .interactive-block input[type="range"]{
@@ -152,6 +167,12 @@
     .interactive-block select:focus,
     .interactive-block input[type="number"]:focus{
       border-color: rgba(108,124,255,0.80);
+    }
+
+    /* (4) Différencier encore plus “action” : fond un poil plus clair */
+    .interactive-block select,
+    .interactive-block input[type="number"]{
+      background: rgba(255,255,255,0.08);
     }
 
     .badge{
@@ -247,12 +268,16 @@
       background: rgba(27,36,64,0.85);
     }
 
-    /* --- Help tips (bulle) --- */
+    /* Help tips */
     .has-tip{
-      text-decoration: underline;
-      text-decoration-style: dotted;
-      text-underline-offset: 3px;
       cursor: pointer;
+    }
+
+    /* (3) Soulignement plus discret : bordure pointillée au lieu du underline */
+    .has-tip{
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(154,163,189,0.55);
+      padding-bottom: 1px;
     }
 
     .tip-bubble{
@@ -295,7 +320,6 @@
     <div class="kpi">
       <span class="pill" id="kpi-date">Année : 2000 / Trimestre : Q1</span>
 
-      <!-- (3) Réputation /100 -->
       <span class="pill">
         <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance des clients, la tolérance aux défauts (SAV) et l’efficacité du marketing.">
           Réputation
@@ -303,7 +327,6 @@
         <b id="kpi-brand">35</b><span class="muted">/100</span>
       </span>
 
-      <!-- (6) Trésorerie -->
       <span class="pill">
         <span class="has-tip" data-tip="Trésorerie disponible. Si tu passes sous 0, tu risques un emprunt automatique (plus tard : faillite possible).">
           Trésorerie
@@ -311,7 +334,6 @@
         <b id="kpi-cash">$0</b>
       </span>
 
-      <!-- (5) Valorisation -->
       <span class="pill">
         <span class="has-tip" data-tip="Valorisation de l’entreprise (bourse). Dépend des profits, de la réputation et du contexte de marché.">
           Valorisation
@@ -319,7 +341,6 @@
         <b id="kpi-mcap">$0</b>
       </span>
 
-      <!-- (4) Parts de marché -->
       <span class="pill">
         <span class="has-tip" data-tip="Part de marché estimée ce trimestre. Monte si tu vends plus que tes concurrents, baisse sinon.">
           Parts de marché
@@ -328,7 +349,6 @@
       </span>
     </div>
 
-    <!-- (2) Marché (pas de Macro ×) -->
     <span class="pill muted" id="kpi-macro">
       <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et légèrement le volume global.">
         Marché
@@ -339,7 +359,6 @@
 </header>
 
 <main>
-  <!-- PRODUIT -->
   <section class="card" id="screen-product">
     <h3>Produit & OS</h3>
 
@@ -374,7 +393,7 @@
 
           <label>
             <span class="has-tip" data-tip="Budget R&D dépensé ce trimestre. Accélère la progression de ton OS si tu en développes un, et améliore ta trajectoire tech.">
-              Budget R&D (USD)
+              Budget R&amp;D (USD)
             </span>
           </label>
           <input type="number" id="rnd" min="0" step="10000" value="30000" />
@@ -391,7 +410,7 @@
           </label>
           <select id="os-mode">
             <option value="license" selected>OS sous licence (rapide, royalties)</option>
-            <option value="closed">OS propriétaire fermé (premium, long R&D)</option>
+            <option value="closed">OS propriétaire fermé (premium, long R&amp;D)</option>
             <option value="open">OS propriétaire ouvert (très long, licences possibles)</option>
           </select>
 
@@ -403,8 +422,6 @@
           </div>
         </div>
 
-        <!-- (7) Ouverture OS supprimée -->
-        <!-- (8) Écosystème d’apps : expliqué + masqué si OS sous licence -->
         <div id="dev-row">
           <label>
             <span class="has-tip" data-tip="Écosystème d’apps (0–100). Important surtout pour un OS ouvert : plus haut = plus d’apps/partenaires, plus d’attrait long terme.">
@@ -441,7 +458,6 @@
     </div>
   </section>
 
-  <!-- PRODUCTION -->
   <section class="card" id="screen-production" style="display:none">
     <h3>Production</h3>
 
@@ -502,7 +518,6 @@
     </div>
   </section>
 
-  <!-- MARCHE -->
   <section class="card" id="screen-market" style="display:none">
     <h3>Marché</h3>
 
@@ -538,7 +553,6 @@
     </div>
   </section>
 
-  <!-- BILAN -->
   <section class="card" id="screen-report" style="display:none">
     <h3>Bilan du trimestre</h3>
 
@@ -559,7 +573,7 @@
   <button data-screen="report">Bilan</button>
 </nav>
 
-<!-- Si iOS cache, incrémente ?v=... -->
-<script type="module" src="./app.js?v=3"></script>
+<!-- iOS cache: incrémente ?v=... si besoin -->
+<script type="module" src="./app.js?v=5"></script>
 </body>
 </html>
