@@ -237,6 +237,46 @@
       border-color: rgba(108,124,255,0.65);
       background: rgba(27,36,64,0.85);
     }
+
+    /* --- Help tips --- */
+    .has-tip{
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+
+    .tip-bubble{
+      position: fixed;
+      z-index: 9999;
+      left: 12px;
+      right: 12px;
+      bottom: 92px; /* au-dessus de la nav */
+      background: rgba(15,20,34,0.96);
+      border: 1px solid rgba(108,124,255,0.35);
+      border-radius: 14px;
+      padding: 12px 12px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+    }
+
+    .tip-bubble .tip-title{
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .tip-bubble .tip-close{
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
   </style>
 </head>
 
@@ -244,13 +284,23 @@
 <header>
   <div class="top-row">
     <div class="kpi">
-      <span class="pill" id="kpi-date">2000 Q1</span>
-      <span class="pill">IM <b id="kpi-brand">35</b></span>
+      <span class="pill" id="kpi-date">Année : 2000 / Trimestre : Q1</span>
+
+      <span class="pill">
+        <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance des clients, la tolérance aux défauts (SAV) et l’efficacité du marketing.">
+          Réputation
+        </span>
+        <b id="kpi-brand">35</b>
+      </span>
+
       <span class="pill">Cash <b id="kpi-cash">$0</b></span>
       <span class="pill">Valo <b id="kpi-mcap">$0</b></span>
       <span class="pill">Parts <b id="kpi-share">0%</b></span>
     </div>
-    <span class="pill muted" id="kpi-macro">Macro × 1.00</span>
+
+    <span class="pill muted" id="kpi-macro">
+      <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et, légèrement, le volume global.">Marché</span> : Marché normal
+    </span>
   </div>
 </header>
 
@@ -268,50 +318,94 @@
             <option value="mainstream" selected>Mainstream</option>
             <option value="premium">Premium</option>
           </select>
-          <div class="muted">Détermine la base de demande et l’élasticité.</div>
+          <div class="muted">
+            Le segment visé (budget/mainstream/premium) influence les attentes des clients.
+          </div>
 
-          <label>Performance (0–100)</label>
+          <label>
+            <span class="has-tip" data-tip="Qualité produit (0–100). Plus haut = produit plus désirable (attractivité), un peu moins de SAV, mais composants plus coûteux.">
+              Qualité produit (0–100)
+            </span>
+          </label>
           <input type="range" id="perf" min="10" max="100" value="55" />
           <div class="muted">Score : <b id="perf-val">55</b></div>
         </div>
 
         <div>
-          <label>Prix (USD)</label>
+          <label>
+            <span class="has-tip" data-tip="Prix auquel tu vends ton téléphone. Plus haut = marge ↑ mais ventes ↓ (si trop cher pour le segment).">
+              Prix de vente (USD)
+            </span>
+          </label>
           <input type="number" id="price" min="50" step="10" value="399" />
+          <div class="muted">Plus haut = marge ↑, volume ↓</div>
 
-          <label>Budget R&D (USD)</label>
+          <label>
+            <span class="has-tip" data-tip="Budget R&amp;D dépensé ce trimestre. Accélère la progression de ton OS si tu en développes un, et améliore ta trajectoire tech.">
+              Budget R&D (USD)
+            </span>
+          </label>
           <input type="number" id="rnd" min="0" step="10000" value="30000" />
-          <div class="muted">Améliore perf / stabilité (progressif).</div>
+          <div class="muted">Investissement trimestriel (progressif).</div>
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Stratégie OS</label>
+          <label>
+            <span class="has-tip" data-tip="OS sous licence : rapide mais tu payes des royalties. OS propriétaire : plus long et coûteux, mais tu maîtrises ta stack (et potentiellement tes marges).">
+              Stratégie OS
+            </span>
+          </label>
           <select id="os-mode">
             <option value="license" selected>OS sous licence (rapide, royalties)</option>
             <option value="closed">OS propriétaire fermé (premium, long R&D)</option>
             <option value="open">OS propriétaire ouvert (très long, licences possibles)</option>
           </select>
-          <div class="muted">Maturité OS : <b id="os-maturity">10</b>/100</div>
+
+          <div class="muted">
+            <span class="has-tip" data-tip="Maturité de ton OS (0–100). Plus haut = plus stable, plus apprécié, meilleure efficacité long terme.">
+              Maturité OS
+            </span> :
+            <b id="os-maturity">10</b>/100
+          </div>
         </div>
 
         <div>
-          <label>Ouverture (si OS propriétaire)</label>
+          <label>
+            <span class="has-tip" data-tip="Le statut d’ouverture dépend de ton choix OS : licence = N/A, propriétaire fermé = fermé, propriétaire ouvert = ouvert.">
+              Ouverture OS
+            </span>
+          </label>
           <select id="os-openness">
             <option value="n/a" selected>N/A (licence)</option>
             <option value="closed">Fermé</option>
             <option value="open">Ouvert</option>
           </select>
-          <div class="muted">Dev studios : <b id="dev-attract">10</b>/100</div>
+
+          <div class="muted">
+            <span class="has-tip" data-tip="Attraction de l’écosystème dev (0–100). Utile surtout pour un OS ouvert : plus haut = plus d’apps/partenaires potentiels.">
+              Écosystème dev
+            </span> :
+            <b id="dev-attract">10</b>/100
+          </div>
         </div>
       </div>
     </div>
 
     <div class="info-block">
-      <div class="badge">Preview demande : <b id="demand-preview">0</b> unités</div>
-      <div class="muted" style="margin-top:8px;">
-        Astuce : si la demande est très au-dessus de ta capacité, tu es limité par la production.
+      <div class="badge">
+        <span class="has-tip" data-tip="Attractivité du modèle actuel (0–100). Résume la désirabilité : prix, qualité produit, réputation.">
+          Attractivité produit
+        </span> :
+        <b id="prod-attract">0</b>/100
+      </div>
+
+      <div class="badge" style="margin-top:10px;">
+        <span class="has-tip" data-tip="Indication (pas une vérité absolue) de l’intérêt du marché pour ton modèle ce trimestre.">
+          Intérêt du marché (estim.)
+        </span> :
+        <b id="market-interest">—</b>
       </div>
 
       <div class="actions">
@@ -328,37 +422,56 @@
     <div class="interactive-block">
       <div class="row">
         <div>
-          <label>Capacité (unités / trimestre)</label>
+          <label>
+            <span class="has-tip" data-tip="Nombre maximum d’unités que tu peux assembler ce trimestre. Plus haut = plus de coûts fixes.">
+              Capacité (unités / trimestre)
+            </span>
+          </label>
           <input type="number" id="capacity" min="100" step="50" value="1000" />
-          <div class="muted">Coûts fixes augmentent avec la capacité.</div>
+          <div class="muted">Augmenter la capacité coûte cher, mais évite d’être limité.</div>
         </div>
 
         <div>
-          <label>Qualité process (0–100)</label>
+          <label>
+            <span class="has-tip" data-tip="Qualité du process industriel (0–100). Plus haut = moins de défauts/SAV.">
+              Qualité process (0–100)
+            </span>
+          </label>
           <input type="range" id="qprocess" min="0" max="100" value="45" />
-          <div class="muted">Plus haut = moins de SAV.</div>
+          <div class="muted">Plus haut = SAV ↓</div>
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Stock composants (unités)</label>
+          <label>
+            <span class="has-tip" data-tip="Stock de composants. Une unité produite consomme 1 stock.">
+              Stock composants (unités)
+            </span>
+          </label>
           <input type="number" id="stock" min="0" step="100" value="1200" />
-          <div class="muted">Chaque unité produite consomme 1 stock.</div>
         </div>
 
         <div>
-          <label>Achat composants ce trimestre</label>
+          <label>
+            <span class="has-tip" data-tip="Achat de composants ce trimestre (coûte du cash).">
+              Achat composants (ce trimestre)
+            </span>
+          </label>
           <input type="number" id="buy" min="0" step="100" value="1000" />
-          <div class="muted">Coût variable selon période.</div>
         </div>
       </div>
     </div>
 
     <div class="info-block">
-      <div class="badge">SAV attendu : <b id="defect-preview">0.0%</b></div>
+      <div class="badge">
+        <span class="has-tip" data-tip="Taux estimé de défauts/SAV sur ta production. Dépend surtout du process et de la maturité OS.">
+          SAV attendu
+        </span> :
+        <b id="defect-preview">0.0%</b>
+      </div>
       <div class="muted" style="margin-top:8px;">
-        Tu payes le SAV + tu prends un risque sur l’Indice de Marque.
+        Le SAV coûte de l’argent et peut impacter ta Réputation.
       </div>
     </div>
   </section>
@@ -370,19 +483,26 @@
     <div class="interactive-block">
       <div class="row">
         <div>
-          <label>Marketing (USD)</label>
+          <label>
+            <span class="has-tip" data-tip="Budget marketing ce trimestre. Plus efficace si ta Réputation est déjà correcte.">
+              Marketing (USD)
+            </span>
+          </label>
           <input type="number" id="mkt" min="0" step="10000" value="20000" />
-          <div class="muted">Boost demande, surtout si IM déjà correct.</div>
+          <div class="muted">Plus haut = visibilité ↑</div>
         </div>
 
         <div>
-          <label>Distribution</label>
+          <label>
+            <span class="has-tip" data-tip="Canal de vente. Opérateurs = volume ↑ mais marge ↓. B2B = plus stable mais volumes plus faibles.">
+              Distribution
+            </span>
+          </label>
           <select id="channel">
             <option value="b2b">B2B (stable, volumes bas)</option>
             <option value="retail" selected>Retail (standard)</option>
             <option value="carrier">Opérateurs (volume, marge plus faible)</option>
           </select>
-          <div class="muted">Ajuste volumes et marge.</div>
         </div>
       </div>
     </div>
