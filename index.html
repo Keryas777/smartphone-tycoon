@@ -3,25 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Smartphone Tycoon – Prototype</title>
+  <title>Smartphone Tycoon</title>
 
   <style>
     :root{
+      --brand-primary:#6c7cff;
+      --brand-secondary:#8f9bff;
+
       --bg:#0b0f18;
       --panel:#121827;
       --panel-soft:#0f1422;
       --interactive:#182036;
       --border:#232b45;
-      --accent:#6c7cff;
-      --danger:#ff5c7a;
+
       --text:#e6e9f2;
       --muted:#9aa3bd;
 
-      /* NEW: accent clair pour indiquer "à remplir" */
-      --action-bg: rgba(255,255,255,0.10);
-      --action-bg-strong: rgba(255,255,255,0.14);
-      --action-border: rgba(108,124,255,0.42);
-      --action-border-strong: rgba(108,124,255,0.70);
+      --danger:#ff5c7a;
+
+      /* Champs interactifs très visibles */
+      --action-bg: rgba(255,255,255,0.12);
+      --action-bg-strong: rgba(255,255,255,0.18);
+      --action-border: rgba(108,124,255,0.50);
+      --action-border-strong: rgba(108,124,255,0.85);
     }
 
     body{
@@ -31,15 +35,146 @@
       font-family: -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif;
     }
 
-    /* ========= HEADER (PATCH #1: plus compact) ========= */
+    /* ================= INTRO ================= */
+    #intro-screen{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background: radial-gradient(1200px 900px at 50% -200px, rgba(108,124,255,0.18), transparent 55%),
+                  linear-gradient(180deg, #0b0f18 0%, #0e1424 100%);
+    }
+
+    .intro-card{
+      width:100%;
+      max-width: 440px;
+      background: rgba(18,24,39,0.94);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+    }
+
+    .intro-title{
+      margin:0 0 6px 0;
+      font-size: 20px;
+      letter-spacing: .6px;
+    }
+
+    .intro-sub{
+      margin:0 0 14px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .intro-card label{
+      display:block;
+      margin: 12px 0 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .intro-card input[type="text"]{
+      width:100%;
+      box-sizing:border-box;
+      border-radius: 14px;
+      padding: 12px 12px;
+      font-size: 15px;
+      border: 1px solid rgba(108,124,255,0.45);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      outline: none;
+    }
+    .intro-card input[type="text"]:focus{
+      border-color: rgba(108,124,255,0.90);
+      box-shadow: 0 0 0 2px rgba(108,124,255,0.28);
+    }
+
+    .palette-grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .palette{
+      height: 42px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.10);
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .palette.selected{
+      border-color: rgba(255,255,255,0.95);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.30);
+    }
+    .palette .dot{
+      position:absolute;
+      right:8px;
+      top:8px;
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.00);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+    .palette.selected .dot{
+      background: rgba(255,255,255,0.95);
+      border-color: rgba(255,255,255,0.95);
+    }
+
+    .intro-actions{
+      display:flex;
+      gap:10px;
+      margin-top: 16px;
+    }
+
+    .btn{
+      width:100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border:0;
+      font-weight: 850;
+      font-size: 15px;
+    }
+
+    .btn-primary{
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      color:#0b0f18;
+      box-shadow: 0 10px 26px rgba(108,124,255,0.25);
+    }
+
+    .intro-note{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    /* ================= HEADER ================= */
     header{
       position: sticky;
       top: 0;
       z-index: 20;
-      padding: 12px 12px 10px;
+      padding: 10px 12px 10px;
       border-bottom: 1px solid var(--border);
       background: rgba(15, 20, 34, 0.92);
       backdrop-filter: blur(10px);
+    }
+
+    /* bandeau dégradé personnalisé (dans le header) */
+    .brand-strip{
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
     }
 
     .top-row{
@@ -69,15 +204,11 @@
       line-height: 1.2;
     }
 
-    .pill b{ font-weight: 800; }
+    .pill b{ font-weight: 850; }
     .pill.muted{ color: var(--muted); }
     .muted{ color: var(--muted); font-size: 12px; }
 
-    /* PATCH #1: "Marché" rejoint le groupe KPI => plus de bloc isolé */
-    #kpi-macro{
-      margin-left: 0;
-    }
-
+    /* ================= MAIN ================= */
     main{
       padding: 14px;
       padding-bottom: 110px;
@@ -98,7 +229,7 @@
       margin: 0 0 12px;
       font-size: 15px;
       letter-spacing: 0.4px;
-      color: var(--accent);
+      color: var(--brand-primary);
     }
 
     .row{
@@ -118,35 +249,30 @@
     input[type="number"], select{
       width:100%;
       box-sizing:border-box;
-      background: var(--interactive);
-      border: 1px solid var(--border);
-      color: var(--text);
       border-radius: 12px;
       padding: 10px;
       font-size: 14px;
+      color: var(--text);
     }
 
-    /* Select trop long : ellipsis */
     select{
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* ========= PATCH #2 : slider moins "énorme" ========= */
     input[type="range"]{
       width:100%;
-      height: 26px; /* au lieu de 38 */
+      height: 26px;
       background: transparent;
     }
 
     input:focus, select:focus{
       outline:none;
-      border-color: var(--accent);
+      border-color: var(--brand-primary);
       box-shadow: 0 0 0 2px rgba(108,124,255,0.28);
     }
 
-    /* Zones INFO vs INTERACTION */
     .info-block{
       background: rgba(15,20,34,0.9);
       border: 1px solid rgba(35,43,69,0.9);
@@ -155,85 +281,27 @@
       margin-top: 12px;
     }
 
-    /* ========= INTERACTIVE : beaucoup plus clair (demande utilisateur) ========= */
+    /* Zone interactive (très visible) */
     .interactive-block{
       background: rgba(27,36,64,0.80);
       border: 1px solid rgba(47,59,106,0.95);
       border-radius: 14px;
       padding: 12px;
       margin-top: 12px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
     }
 
-    /* Fond et bordure plus visibles */
     .interactive-block select,
     .interactive-block input[type="number"],
     .interactive-block input[type="range"]{
       background: var(--action-bg);
-      border-color: var(--action-border);
+      border: 1px solid var(--action-border);
     }
-
-    /* (plus net encore) : select & number plus “call-to-action” */
     .interactive-block select,
     .interactive-block input[type="number"]{
       background: var(--action-bg-strong);
       border-color: var(--action-border-strong);
-    }
-
-    /* Petite “lueur” permanente pour signaler l’interaction */
-    .interactive-block select,
-    .interactive-block input[type="number"]{
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-
-    .interactive-block select:focus,
-    .interactive-block input[type="number"]:focus{
-      border-color: rgba(108,124,255,0.95);
-      box-shadow: 0 0 0 2px rgba(108,124,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.08);
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(108,124,255,0.12);
-      border: 1px solid rgba(108,124,255,0.30);
-      color: var(--text);
-      font-size: 12px;
-      margin-top: 8px;
-    }
-
-    .badge b{ color: var(--accent); }
-
-    /* ========= PATCH #4 : mini barre de progression (écosystème d'apps) ========= */
-    .mini-bar{
-      height: 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(108,124,255,0.35);
-      background: rgba(255,255,255,0.06);
-      overflow: hidden;
-      margin-top: 8px;
-    }
-    .mini-bar > span{
-      display:block;
-      height:100%;
-      width: 10%;
-      background: rgba(108,124,255,0.75);
-      border-radius: 999px;
-    }
-
-    pre{
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: rgba(15,20,34,0.95);
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: 14px;
-      color: var(--text);
-      line-height: 1.35;
-      font-size: 12px;
     }
 
     .actions{
@@ -248,12 +316,12 @@
       padding: 13px 14px;
       border-radius: 14px;
       border: 0;
-      font-weight: 800;
+      font-weight: 850;
       font-size: 14px;
     }
 
     .primary{
-      background: linear-gradient(135deg, #6c7cff, #8f9bff);
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
       color: #0b0f18;
       box-shadow: 0 6px 18px rgba(108,124,255,0.35);
       transition: transform 0.08s ease;
@@ -293,12 +361,56 @@
       background: rgba(18,24,39,0.85);
       border: 1px solid var(--border);
       color: var(--text);
-      font-weight: 700;
+      font-weight: 800;
     }
 
     nav button.active{
       border-color: rgba(108,124,255,0.65);
       background: rgba(27,36,64,0.85);
+    }
+
+    .badge{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(108,124,255,0.12);
+      border: 1px solid rgba(108,124,255,0.30);
+      color: var(--text);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    .badge b{ color: var(--brand-secondary); font-size: 16px; }
+
+    .mini-bar{
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(108,124,255,0.35);
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .mini-bar > span{
+      display:block;
+      height:100%;
+      width: 10%;
+      background: rgba(108,124,255,0.75);
+      border-radius: 999px;
+    }
+
+    pre{
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(15,20,34,0.95);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 14px;
+      color: var(--text);
+      line-height: 1.35;
+      font-size: 12px;
     }
 
     /* Tooltips */
@@ -326,8 +438,8 @@
     }
 
     .tip-bubble .tip-title{
-      font-weight: 800;
-      color: var(--accent);
+      font-weight: 850;
+      color: var(--brand-primary);
       margin-bottom: 6px;
     }
 
@@ -338,48 +450,76 @@
       background: transparent;
       border: 0;
       color: var(--muted);
-      font-size: 16px;
+      font-size: 18px;
     }
   </style>
 </head>
 
 <body>
-<header>
+
+<!-- INTRO -->
+<div id="intro-screen" aria-hidden="true">
+  <div class="intro-card">
+    <h1 class="intro-title">Créer votre entreprise</h1>
+    <p class="intro-sub">
+      Donne un nom à ton entreprise et choisis une palette.
+      <br>Ce choix est <b>définitif</b> (sauf reset).
+    </p>
+
+    <label for="company-name">Nom de l’entreprise</label>
+    <input id="company-name" type="text" placeholder="Ex : Nova Mobile" maxlength="28" />
+
+    <label>Palette de marque (8 choix)</label>
+    <div class="palette-grid" id="palette-grid"></div>
+
+    <div class="intro-actions">
+      <button class="btn btn-primary" id="start-btn">Créer mon entreprise</button>
+    </div>
+
+    <div class="intro-note">
+      Astuce : choisis une palette lisible — elle te suivra toute la partie.
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<header id="header" style="display:none">
+  <div class="brand-strip" aria-hidden="true"></div>
+
   <div class="top-row">
     <div class="kpi">
       <span class="pill" id="kpi-date">Année : 2000 / Trimestre : Q1</span>
 
       <span class="pill">
-        <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance des clients, la tolérance aux défauts (SAV) et l’efficacité du marketing.">
+        <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance, la tolérance aux défauts et l’efficacité du marketing.">
           Réputation
         </span>
         <b id="kpi-brand">35</b><span class="muted">/100</span>
       </span>
 
       <span class="pill">
-        <span class="has-tip" data-tip="Trésorerie disponible. Si tu passes sous 0, tu risques un emprunt automatique (plus tard : faillite possible).">
+        <span class="has-tip" data-tip="Trésorerie disponible. Si tu passes sous 0, tu es en difficulté.">
           Trésorerie
         </span>
-        <b id="kpi-cash">$0</b>
+        <b id="kpi-cash">$250.0k</b>
       </span>
 
       <span class="pill">
-        <span class="has-tip" data-tip="Valorisation de l’entreprise (bourse). Dépend des profits, de la réputation et du contexte de marché.">
+        <span class="has-tip" data-tip="Valorisation (bourse). Dépend surtout des profits, de la réputation et du marché.">
           Valorisation
         </span>
-        <b id="kpi-mcap">$0</b>
+        <b id="kpi-mcap">$2.00M</b>
       </span>
 
       <span class="pill">
-        <span class="has-tip" data-tip="Part de marché estimée ce trimestre. Monte si tu vends plus que tes concurrents, baisse sinon.">
+        <span class="has-tip" data-tip="Part de marché estimée ce trimestre.">
           Parts de marché
         </span>
-        <b id="kpi-share">0%</b>
+        <b id="kpi-share">8.0%</b>
       </span>
 
-      <!-- PATCH #1 : Marché dans la même ligne KPI -->
       <span class="pill muted" id="kpi-macro">
-        <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et légèrement le volume global.">
+        <span class="has-tip" data-tip="Conjoncture globale. Impacte surtout la valorisation et un peu le volume total.">
           Marché
         </span>
         <span id="kpi-macro-value">Marché normal</span>
@@ -388,7 +528,9 @@
   </div>
 </header>
 
-<main>
+<main id="main" style="display:none">
+
+  <!-- PRODUIT -->
   <section class="card" id="screen-product">
     <h3>Produit & OS</h3>
 
@@ -404,7 +546,7 @@
           <div class="muted">Le segment visé influence les attentes des clients.</div>
 
           <label>
-            <span class="has-tip" data-tip="Qualité produit (0–100). Plus haut = produit plus désirable (attractivité), un peu moins de SAV, mais composants plus coûteux.">
+            <span class="has-tip" data-tip="Qualité produit (0–100). Plus haut = produit plus désirable, mais plus coûteux.">
               Qualité produit (0–100)
             </span>
           </label>
@@ -414,7 +556,7 @@
 
         <div>
           <label>
-            <span class="has-tip" data-tip="Prix auquel tu vends ton téléphone. Plus haut = marge ↑ mais ventes ↓ (si trop cher pour le segment).">
+            <span class="has-tip" data-tip="Prix de vente. Plus haut = marge ↑ mais volume ↓ si trop cher.">
               Prix de vente (USD)
             </span>
           </label>
@@ -422,24 +564,22 @@
           <div class="muted">Plus haut = marge ↑, volume ↓</div>
 
           <label>
-            <span class="has-tip" data-tip="Budget R&D dépensé ce trimestre. Accélère la progression de ton OS si tu en développes un, et améliore ta trajectoire tech.">
+            <span class="has-tip" data-tip="R&D trimestrielle. Sert à développer/fiabiliser l’OS (si propriétaire) et améliorer la techno.">
               Budget R&amp;D (USD)
             </span>
           </label>
           <input type="number" id="rnd" min="0" step="10000" value="30000" />
-          <div class="muted">Investissement trimestriel (progressif).</div>
+          <div class="muted">Investissement trimestriel.</div>
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>
-            <span class="has-tip" data-tip="OS sous licence : rapide mais royalties. OS propriétaire : plus long et coûteux, mais tu maîtrises ta stack (marges, dépendance).">
+            <span class="has-tip" data-tip="OS sous licence : rapide mais royalties. OS propriétaire : long et coûteux, mais indépendant.">
               Stratégie OS
             </span>
           </label>
-
-          <!-- PATCH #3 : libellés courts (sans changer value) -->
           <select id="os-mode">
             <option value="license" selected>OS sous licence</option>
             <option value="closed">OS propriétaire fermé</option>
@@ -447,7 +587,7 @@
           </select>
 
           <div class="muted">
-            <span class="has-tip" data-tip="Maturité de ton OS (0–100). Plus haut = plus stable, plus apprécié, meilleure efficacité long terme.">
+            <span class="has-tip" data-tip="Maturité OS (0–100). Plus haut = stabilité et satisfaction client.">
               Maturité OS
             </span> :
             <b id="os-maturity">10</b>/100
@@ -456,7 +596,7 @@
 
         <div id="dev-row">
           <label>
-            <span class="has-tip" data-tip="Écosystème d’apps (0–100). Important surtout pour un OS ouvert : plus haut = plus d’apps/partenaires, plus d’attrait long terme.">
+            <span class="has-tip" data-tip="Écosystème d’apps (0–100). Plus haut = plus d’apps/partenaires, surtout utile si OS propriétaire (open).">
               Écosystème d’apps
             </span>
           </label>
@@ -465,28 +605,27 @@
             <b id="dev-attract">10</b>/100
           </div>
 
-          <!-- PATCH #4 : mini barre -->
           <div class="mini-bar" aria-label="Progression écosystème d'apps">
             <span id="dev-bar" style="width:10%"></span>
           </div>
 
-          <div class="muted">Visible surtout si OS propriétaire (surtout ouvert).</div>
+          <div class="muted">Impact surtout si OS propriétaire (surtout ouvert).</div>
         </div>
       </div>
     </div>
 
     <div class="info-block">
       <div class="badge">
-        <span class="has-tip" data-tip="Attractivité du modèle actuel (0–100). Résume la désirabilité : prix, qualité produit, réputation.">
+        <span class="has-tip" data-tip="Attractivité (0–100) : résumé prix + qualité + réputation.">
           Attractivité produit
-        </span> :
-        <b id="prod-attract">0</b>/100
+        </span>
+        <b><span id="prod-attract">0</span>/100</b>
       </div>
 
-      <div class="badge" style="margin-top:10px;">
-        <span class="has-tip" data-tip="Indication (pas une vérité absolue) de l’intérêt du marché pour ton modèle ce trimestre.">
+      <div class="badge">
+        <span class="has-tip" data-tip="Indication qualitative (pas une certitude) de l'intérêt global du marché pour ton offre.">
           Intérêt du marché (estim.)
-        </span> :
+        </span>
         <b id="market-interest">—</b>
       </div>
 
@@ -497,6 +636,7 @@
     </div>
   </section>
 
+  <!-- PRODUCTION -->
   <section class="card" id="screen-production" style="display:none">
     <h3>Production</h3>
 
@@ -504,17 +644,17 @@
       <div class="row">
         <div>
           <label>
-            <span class="has-tip" data-tip="Nombre maximum d’unités que tu peux assembler ce trimestre. Plus haut = plus de coûts fixes.">
+            <span class="has-tip" data-tip="Capacité max assemblable ce trimestre. Plus haut = coûts fixes plus importants.">
               Capacité (unités / trimestre)
             </span>
           </label>
           <input type="number" id="capacity" min="100" step="50" value="1000" />
-          <div class="muted">Augmenter la capacité coûte cher, mais évite d’être limité.</div>
+          <div class="muted">Augmenter coûte cher, mais évite d’être limité.</div>
         </div>
 
         <div>
           <label>
-            <span class="has-tip" data-tip="Qualité du process industriel (0–100). Plus haut = moins de défauts/SAV.">
+            <span class="has-tip" data-tip="Qualité du process industriel. Plus haut = défauts/SAV ↓.">
               Qualité process (0–100)
             </span>
           </label>
@@ -526,7 +666,7 @@
       <div class="row">
         <div>
           <label>
-            <span class="has-tip" data-tip="Stock de composants. Une unité produite consomme 1 stock.">
+            <span class="has-tip" data-tip="Stock de composants. Une unité vendue consomme 1 stock.">
               Stock composants (unités)
             </span>
           </label>
@@ -546,9 +686,9 @@
 
     <div class="info-block">
       <div class="badge">
-        <span class="has-tip" data-tip="Taux estimé de défauts/SAV. Dépend surtout du process et de la maturité OS.">
+        <span class="has-tip" data-tip="Estimation du taux de défauts (SAV) sur les ventes du trimestre.">
           SAV attendu
-        </span> :
+        </span>
         <b id="defect-preview">0.0%</b>
       </div>
       <div class="muted" style="margin-top:8px;">
@@ -557,6 +697,7 @@
     </div>
   </section>
 
+  <!-- MARCHE -->
   <section class="card" id="screen-market" style="display:none">
     <h3>Marché</h3>
 
@@ -564,7 +705,7 @@
       <div class="row">
         <div>
           <label>
-            <span class="has-tip" data-tip="Budget marketing ce trimestre. Plus efficace si ta Réputation est déjà correcte.">
+            <span class="has-tip" data-tip="Budget marketing ce trimestre. Plus efficace si ta Réputation est bonne.">
               Marketing (USD)
             </span>
           </label>
@@ -574,7 +715,7 @@
 
         <div>
           <label>
-            <span class="has-tip" data-tip="Canal de vente. Opérateurs = volume ↑ mais marge ↓. B2B = plus stable mais volumes plus faibles.">
+            <span class="has-tip" data-tip="Canal de vente. Opérateurs = volume ↑ mais marge ↓.">
               Distribution
             </span>
           </label>
@@ -592,6 +733,7 @@
     </div>
   </section>
 
+  <!-- BILAN -->
   <section class="card" id="screen-report" style="display:none">
     <h3>Bilan du trimestre</h3>
 
@@ -603,34 +745,16 @@
       <button class="primary" id="btn-next">Lancer le trimestre</button>
     </div>
   </section>
+
 </main>
 
-<nav>
+<nav id="nav" style="display:none">
   <button data-screen="product" class="active">Produit</button>
   <button data-screen="production">Prod</button>
   <button data-screen="market">Marché</button>
   <button data-screen="report">Bilan</button>
 </nav>
 
-<!-- Cache iOS : incrémente si besoin -->
-<script type="module" src="./app.js?v=6"></script>
-
-<!-- PATCH #4 (partie visuelle) : met à jour la mini-bar en fonction de la valeur -->
-<script>
-  // Petite amélioration pure UI : si app.js met à jour #dev-attract, on synchronise la barre.
-  // (Sans toucher à app.js)
-  const syncDevBar = () => {
-    const vEl = document.getElementById("dev-attract");
-    const bar = document.getElementById("dev-bar");
-    if (!vEl || !bar) return;
-    const txt = (vEl.textContent || "0").trim();
-    const v = Math.max(0, Math.min(100, parseInt(txt, 10) || 0));
-    bar.style.width = v + "%";
-  };
-
-  // boucle légère
-  setInterval(syncDevBar, 400);
-</script>
-
+<script type="module" src="./app.js?v=1"></script>
 </body>
 </html>
