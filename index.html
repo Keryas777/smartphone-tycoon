@@ -4,187 +4,245 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Smartphone Tycoon – Prototype</title>
+
   <style>
-:root {
-  --bg: #0b0f18;
-  --panel: #121827;
-  --panel-soft: #0f1422;
-  --interactive: #182036;
-  --border: #232b45;
-  --accent: #6c7cff;
-  --accent-soft: #3b4ccf;
-  --danger: #ff5c7a;
-  --text: #e6e9f2;
-  --muted: #9aa3bd;
-}
+    :root{
+      --bg:#0b0f18;
+      --panel:#121827;
+      --panel-soft:#0f1422;
+      --interactive:#182036;
+      --border:#232b45;
+      --accent:#6c7cff;
+      --danger:#ff5c7a;
+      --text:#e6e9f2;
+      --muted:#9aa3bd;
+    }
 
-body {
-  margin: 0;
-  background: linear-gradient(180deg, #0b0f18 0%, #0e1424 100%);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-}
+    body{
+      margin:0;
+      background: linear-gradient(180deg, #0b0f18 0%, #0e1424 100%);
+      color:var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif;
+    }
 
-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(15, 20, 34, 0.9);
-  backdrop-filter: blur(8px);
-}
+    header{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 14px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 20, 34, 0.92);
+      backdrop-filter: blur(10px);
+    }
 
-.kpi {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+    .top-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
-.pill {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-}
+    .kpi{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
 
-main {
-  padding: 16px;
-  padding-bottom: 100px;
-}
+    .pill{
+      background: rgba(18,24,39,0.9);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text);
+    }
 
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
+    .pill b{ font-weight: 800; }
+    .pill.muted{ color: var(--muted); }
 
-.card h3 {
-  margin: 0 0 12px;
-  font-size: 15px;
-  color: var(--accent);
-  letter-spacing: 0.5px;
-}
+    main{
+      padding: 14px;
+      padding-bottom: 110px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
 
-/* ZONES INTERACTIVES */
-input, select {
-  background: var(--interactive);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 10px;
-}
+    .card{
+      background: rgba(18,24,39,0.88);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
 
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(108,124,255,0.3);
-}
+    .card h3{
+      margin: 0 0 12px;
+      font-size: 15px;
+      letter-spacing: 0.4px;
+      color: var(--accent);
+    }
 
-label {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 10px;
-  display: block;
-}
+    .row{
+      display:flex;
+      gap: 12px;
+      flex-wrap:wrap;
+    }
+    .row > *{ flex:1; min-width: 220px; }
 
-.muted {
-  font-size: 12px;
-  color: var(--muted);
-}
+    label{
+      display:block;
+      margin: 10px 0 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
 
-/* NAV */
-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  background: rgba(15, 20, 34, 0.95);
-  border-top: 1px solid var(--border);
-}
+    input[type="number"], select{
+      width:100%;
+      box-sizing:border-box;
+      background: var(--interactive);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 14px;
+    }
 
-nav button {
-  flex: 1;
-  padding: 12px;
-  border-radius: 14px;
-  background: var(--panel-soft);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-weight: 600;
-}
+    input[type="range"]{
+      width:100%;
+      height: 38px;
+      background: transparent;
+    }
 
-nav button.active {
-  border-color: var(--accent);
-  background: var(--interactive);
-}
+    input:focus, select:focus{
+      outline:none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(108,124,255,0.28);
+    }
 
-/* ACTIONS */
-.actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
+    .muted{
+      color: var(--muted);
+      font-size: 12px;
+    }
 
-.primary {
-  background: var(--accent);
-  border: none;
-  color: #0b0f18;
-  font-weight: 800;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 15px;
-}
+    /* --- Zones pour différencier INFO vs INTERACTION --- */
+    .info-block{
+      background: rgba(15,20,34,0.9);
+      border: 1px solid rgba(35,43,69,0.9);
+      border-radius: 14px;
+      padding: 12px;
+      margin-top: 12px;
+    }
 
-.secondary {
-  background: var(--interactive);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 14px;
-  padding: 14px;
-}
+    .interactive-block{
+      background: rgba(27,36,64,0.75);
+      border: 1px solid rgba(47,59,106,0.9);
+      border-radius: 14px;
+      padding: 12px;
+      margin-top: 12px;
+    }
 
-.danger {
-  background: var(--danger);
-  border: none;
-  color: white;
-  border-radius: 14px;
-  padding: 14px;
-}
-    /* === ZONES INFORMATIVES === */
-.info-block {
-  background: var(--panel-soft);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(108,124,255,0.12);
+      border: 1px solid rgba(108,124,255,0.30);
+      color: var(--text);
+      font-size: 12px;
+      margin-top: 8px;
+    }
 
-/* === ZONES INTERACTIVES === */
-.interactive-block {
-  background: #1b2440;
-  border: 1px solid #2f3b6a;
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
+    .badge b{ color: var(--accent); }
 
-/* BOUTON PRINCIPAL PLUS IMPACTANT */
-.primary {
-  background: linear-gradient(135deg, #6c7cff, #8f9bff);
-  box-shadow: 0 4px 18px rgba(108,124,255,0.4);
-  transition: transform 0.1s ease;
-}
-.primary:active {
-  transform: scale(0.97);
-}
-</style>
+    pre{
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(15,20,34,0.95);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 14px;
+      color: var(--text);
+      line-height: 1.35;
+      font-size: 12px;
+    }
+
+    /* --- Actions --- */
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+    }
+
+    .actions button{
+      flex:1;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 0;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .primary{
+      background: linear-gradient(135deg, #6c7cff, #8f9bff);
+      color: #0b0f18;
+      box-shadow: 0 6px 18px rgba(108,124,255,0.35);
+      transition: transform 0.08s ease;
+    }
+    .primary:active{ transform: scale(0.98); }
+
+    .secondary{
+      background: rgba(27,36,64,0.85);
+      border: 1px solid rgba(47,59,106,0.9);
+      color: var(--text);
+    }
+
+    .danger{
+      background: var(--danger);
+      color: #0b0f18;
+      box-shadow: 0 6px 16px rgba(255,92,122,0.25);
+    }
+
+    /* --- Navigation --- */
+    nav{
+      position: fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index: 30;
+      padding: 12px;
+      display:flex;
+      gap: 8px;
+      background: rgba(15,20,34,0.95);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    nav button{
+      flex: 1;
+      padding: 12px 10px;
+      border-radius: 14px;
+      background: rgba(18,24,39,0.85);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    nav button.active{
+      border-color: rgba(108,124,255,0.65);
+      background: rgba(27,36,64,0.85);
+    }
+  </style>
 </head>
+
 <body>
 <header>
-  <div class="row">
+  <div class="top-row">
     <div class="kpi">
       <span class="pill" id="kpi-date">2000 Q1</span>
       <span class="pill">IM <b id="kpi-brand">35</b></span>
@@ -197,118 +255,151 @@ nav button.active {
 </header>
 
 <main>
+  <!-- PRODUIT -->
   <section class="card" id="screen-product">
     <h3>Produit & OS</h3>
-    <div class="row">
-      <div>
-        <label>Positionnement produit</label>
-        <select id="product-tier">
-          <option value="budget">Budget</option>
-          <option value="mainstream" selected>Mainstream</option>
-          <option value="premium">Premium</option>
-        </select>
-        <div class="muted">Détermine la base de demande et l’élasticité.</div>
+
+    <div class="interactive-block">
+      <div class="row">
+        <div>
+          <label>Positionnement produit</label>
+          <select id="product-tier">
+            <option value="budget">Budget</option>
+            <option value="mainstream" selected>Mainstream</option>
+            <option value="premium">Premium</option>
+          </select>
+          <div class="muted">Détermine la base de demande et l’élasticité.</div>
+
+          <label>Performance (0–100)</label>
+          <input type="range" id="perf" min="10" max="100" value="55" />
+          <div class="muted">Score : <b id="perf-val">55</b></div>
+        </div>
+
+        <div>
+          <label>Prix (USD)</label>
+          <input type="number" id="price" min="50" step="10" value="399" />
+
+          <label>Budget R&D (USD)</label>
+          <input type="number" id="rnd" min="0" step="10000" value="30000" />
+          <div class="muted">Améliore perf / stabilité (progressif).</div>
+        </div>
       </div>
-      <div>
-        <label>Prix (USD)</label>
-        <input type="number" id="price" min="50" step="10" value="399" />
-        <div class="muted">Preview demande : <b id="demand-preview">0</b> unités</div>
+
+      <div class="row">
+        <div>
+          <label>Stratégie OS</label>
+          <select id="os-mode">
+            <option value="license" selected>OS sous licence (rapide, royalties)</option>
+            <option value="closed">OS propriétaire fermé (premium, long R&D)</option>
+            <option value="open">OS propriétaire ouvert (très long, licences possibles)</option>
+          </select>
+          <div class="muted">Maturité OS : <b id="os-maturity">10</b>/100</div>
+        </div>
+
+        <div>
+          <label>Ouverture (si OS propriétaire)</label>
+          <select id="os-openness">
+            <option value="n/a" selected>N/A (licence)</option>
+            <option value="closed">Fermé</option>
+            <option value="open">Ouvert</option>
+          </select>
+          <div class="muted">Dev studios : <b id="dev-attract">10</b>/100</div>
+        </div>
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label>Performance (0–100)</label>
-        <input type="range" id="perf" min="10" max="100" value="55" />
-        <div class="muted">Score : <b id="perf-val">55</b></div>
+    <div class="info-block">
+      <div class="badge">Preview demande : <b id="demand-preview">0</b> unités</div>
+      <div class="muted" style="margin-top:8px;">
+        Astuce : si la demande est très au-dessus de ta capacité, tu es limité par la production.
       </div>
-      <div>
-        <label>Budget R&D (USD)</label>
-        <input type="number" id="rnd" min="0" step="10000" value="30000" />
-        <div class="muted">Améliore perf / stabilité (progressif).</div>
-      </div>
-    </div>
 
-    <div class="row">
-      <div>
-        <label>Stratégie OS</label>
-        <select id="os-mode">
-          <option value="license" selected>OS sous licence (rapide, royalties)</option>
-          <option value="closed">OS propriétaire fermé (premium, long R&D)</option>
-          <option value="open">OS propriétaire ouvert (très long, licences possibles)</option>
-        </select>
-        <div class="muted">Maturité OS : <b id="os-maturity">10</b>/100</div>
+      <div class="actions">
+        <button class="secondary" id="btn-save">Sauver</button>
+        <button class="danger" id="btn-reset">Reset run</button>
       </div>
-      <div>
-        <label>Ouverture (si OS propriétaire)</label>
-        <select id="os-openness">
-          <option value="n/a" selected>N/A (licence)</option>
-          <option value="closed">Fermé</option>
-          <option value="open">Ouvert</option>
-        </select>
-        <div class="muted">Dev studios : <b id="dev-attract">10</b>/100</div>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="secondary" id="btn-save">Sauver</button>
-      <button class="danger" id="btn-reset">Reset run</button>
     </div>
   </section>
 
+  <!-- PRODUCTION -->
   <section class="card" id="screen-production" style="display:none">
     <h3>Production</h3>
-    <div class="row">
-      <div>
-        <label>Capacité (unités / trimestre)</label>
-        <input type="number" id="capacity" min="100" step="50" value="1000" />
-        <div class="muted">Coûts fixes augmentent avec la capacité.</div>
+
+    <div class="interactive-block">
+      <div class="row">
+        <div>
+          <label>Capacité (unités / trimestre)</label>
+          <input type="number" id="capacity" min="100" step="50" value="1000" />
+          <div class="muted">Coûts fixes augmentent avec la capacité.</div>
+        </div>
+
+        <div>
+          <label>Qualité process (0–100)</label>
+          <input type="range" id="qprocess" min="0" max="100" value="45" />
+          <div class="muted">Plus haut = moins de SAV.</div>
+        </div>
       </div>
-      <div>
-        <label>Qualité process (0–100)</label>
-        <input type="range" id="qprocess" min="0" max="100" value="45" />
-        <div class="muted">Plus haut = moins de SAV.</div>
+
+      <div class="row">
+        <div>
+          <label>Stock composants (unités)</label>
+          <input type="number" id="stock" min="0" step="100" value="1200" />
+          <div class="muted">Chaque unité produite consomme 1 stock.</div>
+        </div>
+
+        <div>
+          <label>Achat composants ce trimestre</label>
+          <input type="number" id="buy" min="0" step="100" value="1000" />
+          <div class="muted">Coût variable selon période.</div>
+        </div>
       </div>
     </div>
-    <div class="row">
-      <div>
-        <label>Stock composants (unités)</label>
-        <input type="number" id="stock" min="0" step="100" value="1200" />
-        <div class="muted">Chaque unité produite consomme 1 stock.</div>
-      </div>
-      <div>
-        <label>Achat composants ce trimestre</label>
-        <input type="number" id="buy" min="0" step="100" value="1000" />
-        <div class="muted">Coût variable selon période.</div>
+
+    <div class="info-block">
+      <div class="badge">SAV attendu : <b id="defect-preview">0.0%</b></div>
+      <div class="muted" style="margin-top:8px;">
+        Tu payes le SAV + tu prends un risque sur l’Indice de Marque.
       </div>
     </div>
-    <div class="muted">SAV attendu : <b id="defect-preview">0.0%</b> (sur la production)</div>
   </section>
 
+  <!-- MARCHE -->
   <section class="card" id="screen-market" style="display:none">
     <h3>Marché</h3>
-    <div class="row">
-      <div>
-        <label>Marketing (USD)</label>
-        <input type="number" id="mkt" min="0" step="10000" value="20000" />
-        <div class="muted">Boost demande, surtout si IM déjà correct.</div>
-      </div>
-      <div>
-        <label>Distribution</label>
-        <select id="channel">
-          <option value="b2b">B2B (stable, volumes bas)</option>
-          <option value="retail" selected>Retail (standard)</option>
-          <option value="carrier">Opérateurs (volume, marge plus faible)</option>
-        </select>
-        <div class="muted">Ajuste volumes et marge.</div>
+
+    <div class="interactive-block">
+      <div class="row">
+        <div>
+          <label>Marketing (USD)</label>
+          <input type="number" id="mkt" min="0" step="10000" value="20000" />
+          <div class="muted">Boost demande, surtout si IM déjà correct.</div>
+        </div>
+
+        <div>
+          <label>Distribution</label>
+          <select id="channel">
+            <option value="b2b">B2B (stable, volumes bas)</option>
+            <option value="retail" selected>Retail (standard)</option>
+            <option value="carrier">Opérateurs (volume, marge plus faible)</option>
+          </select>
+          <div class="muted">Ajuste volumes et marge.</div>
+        </div>
       </div>
     </div>
-    <pre id="market-readout">…</pre>
+
+    <div class="info-block">
+      <pre id="market-readout">…</pre>
+    </div>
   </section>
 
+  <!-- BILAN -->
   <section class="card" id="screen-report" style="display:none">
     <h3>Bilan du trimestre</h3>
-    <pre id="report">Lance un trimestre pour voir le bilan.</pre>
+
+    <div class="info-block">
+      <pre id="report">Lance un trimestre pour voir le bilan.</pre>
+    </div>
+
     <div class="actions">
       <button class="primary" id="btn-next">Lancer le trimestre</button>
     </div>
