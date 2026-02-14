@@ -56,10 +56,14 @@
       border-radius: 999px;
       font-size: 12px;
       color: var(--text);
+      display:inline-flex;
+      align-items:baseline;
+      gap:6px;
     }
 
     .pill b{ font-weight: 800; }
     .pill.muted{ color: var(--muted); }
+    .muted{ color: var(--muted); font-size: 12px; }
 
     main{
       padding: 14px;
@@ -121,12 +125,7 @@
       box-shadow: 0 0 0 2px rgba(108,124,255,0.28);
     }
 
-    .muted{
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    /* --- Zones pour différencier INFO vs INTERACTION --- */
+    /* --- Zones INFO vs INTERACTION --- */
     .info-block{
       background: rgba(15,20,34,0.9);
       border: 1px solid rgba(35,43,69,0.9);
@@ -141,6 +140,18 @@
       border-radius: 14px;
       padding: 12px;
       margin-top: 12px;
+    }
+
+    /* (1) Contrôles plus “clairs” visuellement dans les zones interactives */
+    .interactive-block select,
+    .interactive-block input[type="number"],
+    .interactive-block input[type="range"]{
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(108,124,255,0.28);
+    }
+    .interactive-block select:focus,
+    .interactive-block input[type="number"]:focus{
+      border-color: rgba(108,124,255,0.80);
     }
 
     .badge{
@@ -171,7 +182,6 @@
       font-size: 12px;
     }
 
-    /* --- Actions --- */
     .actions{
       display:flex;
       gap: 10px;
@@ -208,7 +218,6 @@
       box-shadow: 0 6px 16px rgba(255,92,122,0.25);
     }
 
-    /* --- Navigation --- */
     nav{
       position: fixed;
       left:0;
@@ -238,7 +247,7 @@
       background: rgba(27,36,64,0.85);
     }
 
-    /* --- Help tips --- */
+    /* --- Help tips (bulle) --- */
     .has-tip{
       text-decoration: underline;
       text-decoration-style: dotted;
@@ -251,7 +260,7 @@
       z-index: 9999;
       left: 12px;
       right: 12px;
-      bottom: 92px; /* au-dessus de la nav */
+      bottom: 92px;
       background: rgba(15,20,34,0.96);
       border: 1px solid rgba(108,124,255,0.35);
       border-radius: 14px;
@@ -286,20 +295,45 @@
     <div class="kpi">
       <span class="pill" id="kpi-date">Année : 2000 / Trimestre : Q1</span>
 
+      <!-- (3) Réputation /100 -->
       <span class="pill">
         <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance des clients, la tolérance aux défauts (SAV) et l’efficacité du marketing.">
           Réputation
         </span>
-        <b id="kpi-brand">35</b>
+        <b id="kpi-brand">35</b><span class="muted">/100</span>
       </span>
 
-      <span class="pill">Cash <b id="kpi-cash">$0</b></span>
-      <span class="pill">Valo <b id="kpi-mcap">$0</b></span>
-      <span class="pill">Parts <b id="kpi-share">0%</b></span>
+      <!-- (6) Trésorerie -->
+      <span class="pill">
+        <span class="has-tip" data-tip="Trésorerie disponible. Si tu passes sous 0, tu risques un emprunt automatique (plus tard : faillite possible).">
+          Trésorerie
+        </span>
+        <b id="kpi-cash">$0</b>
+      </span>
+
+      <!-- (5) Valorisation -->
+      <span class="pill">
+        <span class="has-tip" data-tip="Valorisation de l’entreprise (bourse). Dépend des profits, de la réputation et du contexte de marché.">
+          Valorisation
+        </span>
+        <b id="kpi-mcap">$0</b>
+      </span>
+
+      <!-- (4) Parts de marché -->
+      <span class="pill">
+        <span class="has-tip" data-tip="Part de marché estimée ce trimestre. Monte si tu vends plus que tes concurrents, baisse sinon.">
+          Parts de marché
+        </span>
+        <b id="kpi-share">0%</b>
+      </span>
     </div>
 
+    <!-- (2) Marché (pas de Macro ×) -->
     <span class="pill muted" id="kpi-macro">
-      <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et, légèrement, le volume global.">Marché</span> : Marché normal
+      <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et légèrement le volume global.">
+        Marché
+      </span>
+      <span id="kpi-macro-value">Marché normal</span>
     </span>
   </div>
 </header>
@@ -318,9 +352,7 @@
             <option value="mainstream" selected>Mainstream</option>
             <option value="premium">Premium</option>
           </select>
-          <div class="muted">
-            Le segment visé (budget/mainstream/premium) influence les attentes des clients.
-          </div>
+          <div class="muted">Le segment visé influence les attentes des clients.</div>
 
           <label>
             <span class="has-tip" data-tip="Qualité produit (0–100). Plus haut = produit plus désirable (attractivité), un peu moins de SAV, mais composants plus coûteux.">
@@ -341,7 +373,7 @@
           <div class="muted">Plus haut = marge ↑, volume ↓</div>
 
           <label>
-            <span class="has-tip" data-tip="Budget R&amp;D dépensé ce trimestre. Accélère la progression de ton OS si tu en développes un, et améliore ta trajectoire tech.">
+            <span class="has-tip" data-tip="Budget R&D dépensé ce trimestre. Accélère la progression de ton OS si tu en développes un, et améliore ta trajectoire tech.">
               Budget R&D (USD)
             </span>
           </label>
@@ -353,7 +385,7 @@
       <div class="row">
         <div>
           <label>
-            <span class="has-tip" data-tip="OS sous licence : rapide mais tu payes des royalties. OS propriétaire : plus long et coûteux, mais tu maîtrises ta stack (et potentiellement tes marges).">
+            <span class="has-tip" data-tip="OS sous licence : rapide mais royalties. OS propriétaire : plus long et coûteux, mais tu maîtrises ta stack (marges, dépendance).">
               Stratégie OS
             </span>
           </label>
@@ -371,24 +403,18 @@
           </div>
         </div>
 
-        <div>
+        <!-- (7) Ouverture OS supprimée -->
+        <!-- (8) Écosystème d’apps : expliqué + masqué si OS sous licence -->
+        <div id="dev-row">
           <label>
-            <span class="has-tip" data-tip="Le statut d’ouverture dépend de ton choix OS : licence = N/A, propriétaire fermé = fermé, propriétaire ouvert = ouvert.">
-              Ouverture OS
+            <span class="has-tip" data-tip="Écosystème d’apps (0–100). Important surtout pour un OS ouvert : plus haut = plus d’apps/partenaires, plus d’attrait long terme.">
+              Écosystème d’apps
             </span>
           </label>
-          <select id="os-openness">
-            <option value="n/a" selected>N/A (licence)</option>
-            <option value="closed">Fermé</option>
-            <option value="open">Ouvert</option>
-          </select>
-
-          <div class="muted">
-            <span class="has-tip" data-tip="Attraction de l’écosystème dev (0–100). Utile surtout pour un OS ouvert : plus haut = plus d’apps/partenaires potentiels.">
-              Écosystème dev
-            </span> :
+          <div class="muted" style="margin-top:2px;">
             <b id="dev-attract">10</b>/100
           </div>
+          <div class="muted">Visible surtout si OS propriétaire (surtout ouvert).</div>
         </div>
       </div>
     </div>
@@ -454,7 +480,7 @@
 
         <div>
           <label>
-            <span class="has-tip" data-tip="Achat de composants ce trimestre (coûte du cash).">
+            <span class="has-tip" data-tip="Achat de composants ce trimestre (coûte de la trésorerie).">
               Achat composants (ce trimestre)
             </span>
           </label>
@@ -465,7 +491,7 @@
 
     <div class="info-block">
       <div class="badge">
-        <span class="has-tip" data-tip="Taux estimé de défauts/SAV sur ta production. Dépend surtout du process et de la maturité OS.">
+        <span class="has-tip" data-tip="Taux estimé de défauts/SAV. Dépend surtout du process et de la maturité OS.">
           SAV attendu
         </span> :
         <b id="defect-preview">0.0%</b>
@@ -533,6 +559,7 @@
   <button data-screen="report">Bilan</button>
 </nav>
 
-<script type="module" src="./app.js"></script>
+<!-- Si iOS cache, incrémente ?v=... -->
+<script type="module" src="./app.js?v=3"></script>
 </body>
 </html>
