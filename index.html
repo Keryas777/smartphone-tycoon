@@ -16,6 +16,12 @@
       --danger:#ff5c7a;
       --text:#e6e9f2;
       --muted:#9aa3bd;
+
+      /* NEW: accent clair pour indiquer "à remplir" */
+      --action-bg: rgba(255,255,255,0.10);
+      --action-bg-strong: rgba(255,255,255,0.14);
+      --action-border: rgba(108,124,255,0.42);
+      --action-border-strong: rgba(108,124,255,0.70);
     }
 
     body{
@@ -25,20 +31,15 @@
       font-family: -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif;
     }
 
+    /* ========= HEADER (PATCH #1: plus compact) ========= */
     header{
       position: sticky;
       top: 0;
       z-index: 20;
-      padding: 14px 14px 12px;
+      padding: 12px 12px 10px;
       border-bottom: 1px solid var(--border);
       background: rgba(15, 20, 34, 0.92);
       backdrop-filter: blur(10px);
-    }
-
-    /* (2) KPIs plus compacts sur mobile */
-    @media (max-width: 430px){
-      .pill{ padding: 7px 10px; font-size: 11px; }
-      header{ padding: 12px 12px 10px; }
     }
 
     .top-row{
@@ -58,18 +59,24 @@
     .pill{
       background: rgba(18,24,39,0.9);
       border: 1px solid var(--border);
-      padding: 8px 12px;
+      padding: 7px 10px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text);
       display:inline-flex;
       align-items:baseline;
       gap:6px;
+      line-height: 1.2;
     }
 
     .pill b{ font-weight: 800; }
     .pill.muted{ color: var(--muted); }
     .muted{ color: var(--muted); font-size: 12px; }
+
+    /* PATCH #1: "Marché" rejoint le groupe KPI => plus de bloc isolé */
+    #kpi-macro{
+      margin-left: 0;
+    }
 
     main{
       padding: 14px;
@@ -99,8 +106,6 @@
       gap: 12px;
       flex-wrap:wrap;
     }
-
-    /* (1) Layout plus souple sur mobile/tablette : moins de min-width */
     .row > *{ flex:1; min-width: 160px; }
 
     label{
@@ -121,16 +126,17 @@
       font-size: 14px;
     }
 
-    /* (1) Select trop long : ellipsis sur iPhone */
+    /* Select trop long : ellipsis */
     select{
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
+    /* ========= PATCH #2 : slider moins "énorme" ========= */
     input[type="range"]{
       width:100%;
-      height: 38px;
+      height: 26px; /* au lieu de 38 */
       background: transparent;
     }
 
@@ -149,30 +155,40 @@
       margin-top: 12px;
     }
 
+    /* ========= INTERACTIVE : beaucoup plus clair (demande utilisateur) ========= */
     .interactive-block{
-      background: rgba(27,36,64,0.75);
-      border: 1px solid rgba(47,59,106,0.9);
+      background: rgba(27,36,64,0.80);
+      border: 1px solid rgba(47,59,106,0.95);
       border-radius: 14px;
       padding: 12px;
       margin-top: 12px;
     }
 
-    /* Controls plus clairs (zones interactives) */
+    /* Fond et bordure plus visibles */
     .interactive-block select,
     .interactive-block input[type="number"],
     .interactive-block input[type="range"]{
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(108,124,255,0.28);
-    }
-    .interactive-block select:focus,
-    .interactive-block input[type="number"]:focus{
-      border-color: rgba(108,124,255,0.80);
+      background: var(--action-bg);
+      border-color: var(--action-border);
     }
 
-    /* (4) Différencier encore plus “action” : fond un poil plus clair */
+    /* (plus net encore) : select & number plus “call-to-action” */
     .interactive-block select,
     .interactive-block input[type="number"]{
-      background: rgba(255,255,255,0.08);
+      background: var(--action-bg-strong);
+      border-color: var(--action-border-strong);
+    }
+
+    /* Petite “lueur” permanente pour signaler l’interaction */
+    .interactive-block select,
+    .interactive-block input[type="number"]{
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .interactive-block select:focus,
+    .interactive-block input[type="number"]:focus{
+      border-color: rgba(108,124,255,0.95);
+      box-shadow: 0 0 0 2px rgba(108,124,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.08);
     }
 
     .badge{
@@ -189,6 +205,23 @@
     }
 
     .badge b{ color: var(--accent); }
+
+    /* ========= PATCH #4 : mini barre de progression (écosystème d'apps) ========= */
+    .mini-bar{
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(108,124,255,0.35);
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .mini-bar > span{
+      display:block;
+      height:100%;
+      width: 10%;
+      background: rgba(108,124,255,0.75);
+      border-radius: 999px;
+    }
 
     pre{
       margin: 0;
@@ -268,13 +301,9 @@
       background: rgba(27,36,64,0.85);
     }
 
-    /* Help tips */
+    /* Tooltips */
     .has-tip{
       cursor: pointer;
-    }
-
-    /* (3) Soulignement plus discret : bordure pointillée au lieu du underline */
-    .has-tip{
       text-decoration: none;
       border-bottom: 1px dotted rgba(154,163,189,0.55);
       padding-bottom: 1px;
@@ -347,14 +376,15 @@
         </span>
         <b id="kpi-share">0%</b>
       </span>
-    </div>
 
-    <span class="pill muted" id="kpi-macro">
-      <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et légèrement le volume global.">
-        Marché
+      <!-- PATCH #1 : Marché dans la même ligne KPI -->
+      <span class="pill muted" id="kpi-macro">
+        <span class="has-tip" data-tip="État du marché (conjoncture). Affecte surtout la valorisation et légèrement le volume global.">
+          Marché
+        </span>
+        <span id="kpi-macro-value">Marché normal</span>
       </span>
-      <span id="kpi-macro-value">Marché normal</span>
-    </span>
+    </div>
   </div>
 </header>
 
@@ -408,10 +438,12 @@
               Stratégie OS
             </span>
           </label>
+
+          <!-- PATCH #3 : libellés courts (sans changer value) -->
           <select id="os-mode">
-            <option value="license" selected>OS sous licence (rapide, royalties)</option>
-            <option value="closed">OS propriétaire fermé (premium, long R&amp;D)</option>
-            <option value="open">OS propriétaire ouvert (très long, licences possibles)</option>
+            <option value="license" selected>OS sous licence</option>
+            <option value="closed">OS propriétaire fermé</option>
+            <option value="open">OS propriétaire ouvert</option>
           </select>
 
           <div class="muted">
@@ -428,9 +460,16 @@
               Écosystème d’apps
             </span>
           </label>
+
           <div class="muted" style="margin-top:2px;">
             <b id="dev-attract">10</b>/100
           </div>
+
+          <!-- PATCH #4 : mini barre -->
+          <div class="mini-bar" aria-label="Progression écosystème d'apps">
+            <span id="dev-bar" style="width:10%"></span>
+          </div>
+
           <div class="muted">Visible surtout si OS propriétaire (surtout ouvert).</div>
         </div>
       </div>
@@ -573,7 +612,25 @@
   <button data-screen="report">Bilan</button>
 </nav>
 
-<!-- iOS cache: incrémente ?v=... si besoin -->
-<script type="module" src="./app.js?v=5"></script>
+<!-- Cache iOS : incrémente si besoin -->
+<script type="module" src="./app.js?v=6"></script>
+
+<!-- PATCH #4 (partie visuelle) : met à jour la mini-bar en fonction de la valeur -->
+<script>
+  // Petite amélioration pure UI : si app.js met à jour #dev-attract, on synchronise la barre.
+  // (Sans toucher à app.js)
+  const syncDevBar = () => {
+    const vEl = document.getElementById("dev-attract");
+    const bar = document.getElementById("dev-bar");
+    if (!vEl || !bar) return;
+    const txt = (vEl.textContent || "0").trim();
+    const v = Math.max(0, Math.min(100, parseInt(txt, 10) || 0));
+    bar.style.width = v + "%";
+  };
+
+  // boucle légère
+  setInterval(syncDevBar, 400);
+</script>
+
 </body>
 </html>
