@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smartphone Tycoon – Prototype</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { margin: 0; background: #0b0c10; color: #e8e8e8; }
+    header { position: sticky; top: 0; background: #111218; padding: 12px 14px; border-bottom: 1px solid #222; }
+    header .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .pill { padding: 6px 10px; border: 1px solid #2a2a33; border-radius: 999px; font-size: 12px; color:#cfcfe6; }
+    main { padding: 14px; padding-bottom: 86px; max-width: 900px; margin: 0 auto; }
+    .grid { display:grid; gap: 12px; }
+    .card { background:#111218; border:1px solid #222; border-radius: 14px; padding: 12px; }
+    .card h3 { margin:0 0 8px; font-size: 14px; color:#d9d9ff; }
+    label { display:block; font-size: 12px; color:#b9b9d6; margin: 8px 0 6px; }
+    input[type="number"], select, input[type="range"] {
+      width: 100%; box-sizing:border-box; background:#0e0f14; color:#e8e8e8;
+      border:1px solid #2a2a33; border-radius: 10px; padding: 10px;
+    }
+    input[type="range"] { padding: 0; height: 36px; }
+    .row { display:flex; gap: 10px; }
+    .row > * { flex: 1; }
+    .muted { color:#9aa0b4; font-size: 12px; }
+    .big { font-size: 18px; font-weight: 700; }
+    .kpi { display:flex; gap:10px; flex-wrap:wrap; }
+    .kpi .pill { background:#0e0f14; }
+    nav {
+      position: fixed; left:0; right:0; bottom:0;
+      background:#111218; border-top:1px solid #222; display:flex;
+      padding: 8px; gap: 8px;
+    }
+    nav button {
+      flex:1; background:#0e0f14; color:#e8e8e8; border:1px solid #2a2a33;
+      border-radius: 12px; padding: 10px; font-weight: 600;
+    }
+    nav button.active { border-color:#6a6af5; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
+    .actions button { flex:1; padding: 12px; border-radius: 12px; border: 0; font-weight: 800; }
+    .primary { background:#6a6af5; color:#0b0c10; }
+    .danger { background:#ff5c7a; color:#0b0c10; }
+    .secondary { background:#23243a; color:#e8e8e8; border:1px solid #2a2a33; }
+    pre { white-space: pre-wrap; word-break: break-word; background:#0e0f14; border:1px solid #2a2a33; padding: 10px; border-radius: 12px; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <div class="kpi">
+      <span class="pill" id="kpi-date">2000 Q1</span>
+      <span class="pill">IM <b id="kpi-brand">35</b></span>
+      <span class="pill">Cash <b id="kpi-cash">$0</b></span>
+      <span class="pill">Valo <b id="kpi-mcap">$0</b></span>
+      <span class="pill">Parts <b id="kpi-share">0%</b></span>
+    </div>
+    <span class="pill muted" id="kpi-macro">Macro × 1.00</span>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="screen-product">
+    <h3>Produit & OS</h3>
+    <div class="row">
+      <div>
+        <label>Positionnement produit</label>
+        <select id="product-tier">
+          <option value="budget">Budget</option>
+          <option value="mainstream" selected>Mainstream</option>
+          <option value="premium">Premium</option>
+        </select>
+        <div class="muted">Détermine la base de demande et l’élasticité.</div>
+      </div>
+      <div>
+        <label>Prix (USD)</label>
+        <input type="number" id="price" min="50" step="10" value="399" />
+        <div class="muted">Preview demande : <b id="demand-preview">0</b> unités</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Performance (0–100)</label>
+        <input type="range" id="perf" min="10" max="100" value="55" />
+        <div class="muted">Score : <b id="perf-val">55</b></div>
+      </div>
+      <div>
+        <label>Budget R&D (USD)</label>
+        <input type="number" id="rnd" min="0" step="10000" value="30000" />
+        <div class="muted">Améliore perf / stabilité (progressif).</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Stratégie OS</label>
+        <select id="os-mode">
+          <option value="license" selected>OS sous licence (rapide, royalties)</option>
+          <option value="closed">OS propriétaire fermé (premium, long R&D)</option>
+          <option value="open">OS propriétaire ouvert (très long, licences possibles)</option>
+        </select>
+        <div class="muted">Maturité OS : <b id="os-maturity">10</b>/100</div>
+      </div>
+      <div>
+        <label>Ouverture (si OS propriétaire)</label>
+        <select id="os-openness">
+          <option value="n/a" selected>N/A (licence)</option>
+          <option value="closed">Fermé</option>
+          <option value="open">Ouvert</option>
+        </select>
+        <div class="muted">Dev studios : <b id="dev-attract">10</b>/100</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="secondary" id="btn-save">Sauver</button>
+      <button class="danger" id="btn-reset">Reset run</button>
+    </div>
+  </section>
+
+  <section class="card" id="screen-production" style="display:none">
+    <h3>Production</h3>
+    <div class="row">
+      <div>
+        <label>Capacité (unités / trimestre)</label>
+        <input type="number" id="capacity" min="100" step="50" value="1000" />
+        <div class="muted">Coûts fixes augmentent avec la capacité.</div>
+      </div>
+      <div>
+        <label>Qualité process (0–100)</label>
+        <input type="range" id="qprocess" min="0" max="100" value="45" />
+        <div class="muted">Plus haut = moins de SAV.</div>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Stock composants (unités)</label>
+        <input type="number" id="stock" min="0" step="100" value="1200" />
+        <div class="muted">Chaque unité produite consomme 1 stock.</div>
+      </div>
+      <div>
+        <label>Achat composants ce trimestre</label>
+        <input type="number" id="buy" min="0" step="100" value="1000" />
+        <div class="muted">Coût variable selon période.</div>
+      </div>
+    </div>
+    <div class="muted">SAV attendu : <b id="defect-preview">0.0%</b> (sur la production)</div>
+  </section>
+
+  <section class="card" id="screen-market" style="display:none">
+    <h3>Marché</h3>
+    <div class="row">
+      <div>
+        <label>Marketing (USD)</label>
+        <input type="number" id="mkt" min="0" step="10000" value="20000" />
+        <div class="muted">Boost demande, surtout si IM déjà correct.</div>
+      </div>
+      <div>
+        <label>Distribution</label>
+        <select id="channel">
+          <option value="b2b">B2B (stable, volumes bas)</option>
+          <option value="retail" selected>Retail (standard)</option>
+          <option value="carrier">Opérateurs (volume, marge plus faible)</option>
+        </select>
+        <div class="muted">Ajuste volumes et marge.</div>
+      </div>
+    </div>
+    <pre id="market-readout">…</pre>
+  </section>
+
+  <section class="card" id="screen-report" style="display:none">
+    <h3>Bilan du trimestre</h3>
+    <pre id="report">Lance un trimestre pour voir le bilan.</pre>
+    <div class="actions">
+      <button class="primary" id="btn-next">Lancer le trimestre</button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-screen="product" class="active">Produit</button>
+  <button data-screen="production">Prod</button>
+  <button data-screen="market">Marché</button>
+  <button data-screen="report">Bilan</button>
+</nav>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
