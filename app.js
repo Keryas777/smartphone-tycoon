@@ -1,10 +1,11 @@
 // Smartphone Tycoon – Prototype V1 (mobile web, no build)
-// Works with the provided index.html ids.
-// Save key:
+// UX patch: Réputation / Marché (label) / Attractivité produit / Intérêt marché (mots) / Help tips / OS ouverture verrouillée
+
 const KEY = "st_proto_v1";
 
 // ---------- Helpers ----------
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const $ = (id) => document.getElementById(id);
 
 const fmtMoney = (n) => {
   const sign = n < 0 ? "-" : "";
@@ -17,8 +18,6 @@ const fmtMoney = (n) => {
 
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 
-const $ = (id) => document.getElementById(id);
-
 // ---------- Default state ----------
 function defaultState() {
   return {
@@ -29,21 +28,21 @@ function defaultState() {
     // Core business
     cash: 250_000,
     debt: 0,
-    brand: 35,       // Indice de Marque (0..100)
-    share: 0.08,     // Player market share (0..1)
-    mcap: 2_000_000, // Market cap
-    macro: 1.0,      // Macro multiplier (0.9..~1.25)
+    brand: 35,       // Réputation (0..100)
+    share: 0.08,     // player market share (0..1)
+    mcap: 2_000_000, // market cap
+    macro: 1.0,      // internal multiplier
 
     // OS
     osMode: "license", // license | closed | open
     osMaturity: 10,    // 0..100
     devAttract: 10,    // 0..100
-    osRoyaltyRate: 0.06, // revenue royalty if license
+    osRoyaltyRate: 0.06, // on revenue if license
 
     // Product knobs (single model V1)
     tier: "mainstream", // budget | mainstream | premium
     price: 399,
-    perf: 55,
+    perf: 55,           // "Qualité produit" slider (still named perf internally)
     rnd: 30_000,
 
     // Market knobs
@@ -57,8 +56,8 @@ function defaultState() {
     buy: 1000,
 
     // World
-    rivalsPower: 1.0, // simple pressure factor
-    touch: { started: false, intensity: 0 }, // 0..1
+    rivalsPower: 1.0,
+    touch: { started: false, intensity: 0 },
 
     // Last report snapshot
     last: null,
@@ -81,7 +80,7 @@ function saveState(state) {
   localStorage.setItem(KEY, JSON.stringify(state));
 }
 
-// ---------- UI bindings ----------
+// ---------- UI handles ----------
 const UI = {
   // KPIs
   kpiDate: $("kpi-date"),
@@ -101,7 +100,9 @@ const UI = {
   osOpen: $("os-openness"),
   osMaturity: $("os-maturity"),
   devAttract: $("dev-attract"),
-  demandPreview: $("demand-preview"),
+
+  prodAttract: $("prod-attract"),
+  marketInterest: $("market-interest"),
 
   // Production
   capacity: $("capacity"),
@@ -124,7 +125,7 @@ const UI = {
   btnReset: $("btn-reset"),
 };
 
-// ---------- Economy model (simple, coherent) ----------
+// ---------- Model parameters ----------
 const SEG = {
   budget:     { baseShare: 0.38, priceRef: 199, elasticity: 1.35, perfWeight: 0.25 },
   mainstream: { baseShare: 0.44, priceRef: 399, elasticity: 1.00, perfWeight: 0.45 },
@@ -137,31 +138,36 @@ const CH = {
   carrier:{ demand: 1.18, margin: 0.93 },
 };
 
-function brandDemandFactor(IM) {
-  // IM 0..100 => 1..1.5
-  return 1 + IM / 200;
+// ---------- “Behind the scenes” but displayed as friendly labels ----------
+function marketLabel(m) {
+  if (m <= 0.85) return "Récession";
+  if (m <= 0.95) return "Marché tendu";
+  if (m <= 1.05) return "Marché normal";
+  if (m <= 1.15) return "Marché dynamique";
+  return "Euphorie technologique";
 }
 
-function priceElasticityAdjusted(elasticity, IM) {
-  // Higher IM => less price sensitive
-  return elasticity * (1.05 - (IM / 100) * 0.35); // IM 0 => 1.05x ; IM 100 => 0.70x
+function brandDemandFactor(rep) {
+  return 1 + rep / 200; // 1..1.5
 }
 
-function defectPenaltyAdjusted(IM) {
-  // Higher IM => less reputation damage
-  return clamp(1.0 - (IM / 100) * 0.55, 0.4, 1.0);
+function priceElasticityAdjusted(elasticity, rep) {
+  return elasticity * (1.05 - (rep / 100) * 0.35);
 }
 
-function loyalty(IM) {
-  // IM 0..100 => 0..0.5
-  return IM / 200;
+function defectPenaltyAdjusted(rep) {
+  return clamp(1.0 - (rep / 100) * 0.55, 0.4, 1.0);
 }
 
-// Base market size by era (units per quarter). Touch boosts it.
+function loyalty(rep) {
+  return rep / 200;
+}
+
+// Base market size (units per quarter), touch boosts it
 function marketBaseUnits(year, touch) {
   let base;
   if (year <= 2006) base = 20000 + (year - 2000) * 1200;
-  else if (year <= 2012) base = 28000 + (year - 2007) * 6500; // boom era
+  else if (year <= 2012) base = 28000 + (year - 2007) * 6500;
   else if (year <= 2020) base = 65000 + (year - 2013) * 2500;
   else base = 85000 + (year - 2021) * 700;
 
@@ -169,9 +175,9 @@ function marketBaseUnits(year, touch) {
   return Math.max(5000, Math.round(base * touchBoost));
 }
 
-function unitCost(year, tier, perf) {
+function unitCost(year, tier, quality) {
   const tierBase = tier === "budget" ? 120 : tier === "mainstream" ? 190 : 330;
-  const perfAdj = 0.9 + (perf / 100) * 0.8;
+  const perfAdj = 0.9 + (quality / 100) * 0.8;
   const eraAdj = year < 2007 ? 1.10 : year < 2013 ? 1.05 : year < 2021 ? 1.00 : 1.03;
   return Math.round(tierBase * perfAdj * eraAdj);
 }
@@ -180,15 +186,31 @@ function defectRate(state) {
   const base = 0.06;
   const proc = base - (state.qprocess / 100) * 0.035;
 
-  // OS maturity affects stability: license is stable baseline
+  // OS maturity influences software stability
   const os = state.osMode === "license"
     ? -0.008
     : (0.012 - (state.osMaturity / 100) * 0.020);
 
+  // Quality product slightly helps (a tiny bit) - feels intuitive to player
+  const qualityHelp = - (state.perf / 100) * 0.006; // up to -0.6%
+
   const tier = state.tier === "budget" ? 0.012 : state.tier === "premium" ? -0.006 : 0.0;
-  return clamp(proc + os + tier, 0.008, 0.12);
+  return clamp(proc + os + tier + qualityHelp, 0.008, 0.12);
 }
 
+// Player-facing: Attractivité produit (0..100), not a perfect oracle
+function productAttract(state) {
+  const segRef = (state.tier === "budget") ? 199 : (state.tier === "premium") ? 799 : 399;
+
+  // Price effect is gentle, to avoid feeling deterministic
+  const priceFactor = Math.pow(segRef / Math.max(50, state.price), 0.25);
+
+  // Mix quality and reputation
+  const raw = (state.perf * 0.7) + (state.brand * 0.3);
+  return Math.round(clamp(raw * priceFactor, 0, 100));
+}
+
+// Internal demand estimate (used by engine)
 function demandEstimate(state) {
   const baseUnits = marketBaseUnits(state.year, state.touch);
   const seg = SEG[state.tier];
@@ -203,7 +225,6 @@ function demandEstimate(state) {
   const mktFactor = 1 + Math.log10(1 + state.marketing / 20000) * 0.22;
   const brandFactor = brandDemandFactor(state.brand);
 
-  // OS factor
   let osFactor = 1.0;
   if (state.osMode === "closed") {
     osFactor = 0.92 + (state.osMaturity / 100) * 0.25 + (state.brand / 100) * 0.12;
@@ -214,9 +235,23 @@ function demandEstimate(state) {
   }
 
   const rival = 1 / state.rivalsPower;
-  const units = segmentUnits * priceFactor * perfFactor * mktFactor * brandFactor * osFactor * ch.demand * rival;
 
+  const units = segmentUnits * priceFactor * perfFactor * mktFactor * brandFactor * osFactor * ch.demand * rival;
   return Math.max(0, Math.round(units));
+}
+
+// Player-facing: “Intérêt du marché (estim.)” as words
+function interestWord(state) {
+  const base = marketBaseUnits(state.year, state.touch);
+  const segUnits = base * SEG[state.tier].baseShare;
+
+  const d = demandEstimate(state);
+  const ratio = d / Math.max(1, segUnits);
+
+  if (ratio < 0.70) return "Faible";
+  if (ratio < 1.05) return "Moyen";
+  if (ratio < 1.40) return "Fort";
+  return "Très fort";
 }
 
 function updateMacro(state) {
@@ -225,8 +260,8 @@ function updateMacro(state) {
   m = clamp(m, 0.90, 1.15);
 
   const r = Math.random();
-  if (r < 0.015) m = clamp(m + 0.08, 0.90, 1.25); // mini bubble
-  if (r > 0.985) m = clamp(m - 0.08, 0.80, 1.15); // mini crash
+  if (r < 0.015) m = clamp(m + 0.08, 0.90, 1.25);
+  if (r > 0.985) m = clamp(m - 0.08, 0.80, 1.15);
 
   state.macro = m;
 }
@@ -246,7 +281,6 @@ function maybeAdvanceTouch(state) {
     return;
   }
 
-  // Hybrid trigger: innovation from player + rivals + time
   const baseP = 0.08 + (state.year - 2005) * 0.05;
   const playerP =
     (state.rnd / 150000) * 0.08 +
@@ -258,7 +292,6 @@ function maybeAdvanceTouch(state) {
 
   if (Math.random() < p) {
     state.touch.started = true;
-    // Smoother if brand is higher (premium-like starter)
     state.touch.intensity = state.brand >= 60 ? 0.18 : state.brand >= 40 ? 0.22 : 0.28;
   }
 }
@@ -301,22 +334,19 @@ function updateBrand(state, sold, demand, defect, profit) {
   if (defect < 0.03) delta += 1;
   if (defect > 0.06) delta -= 2;
 
-  // Positioning coherence
   if (state.tier === "premium" && state.brand < 50) delta -= 1;
   if (state.tier === "budget" && state.brand > 70) delta -= 1;
 
   if (profit > 0) delta += 1;
   if (profit < 0) delta -= 1;
 
-  // Apply tolerance
   delta = Math.round(delta * defectPenaltyAdjusted(state.brand));
-
   state.brand = clamp(state.brand + delta, 0, 100);
 }
 
 function applyDebtInterest(state) {
   if (state.debt <= 0) return 0;
-  const rate = state.year < 2007 ? 0.015 : state.year < 2013 ? 0.02 : 0.025; // per quarter
+  const rate = state.year < 2007 ? 0.015 : state.year < 2013 ? 0.02 : 0.025;
   const interest = Math.round(state.debt * rate);
   state.cash -= interest;
   return interest;
@@ -324,7 +354,7 @@ function applyDebtInterest(state) {
 
 function fundamentalValue(state, profit) {
   const profitAnnual = profit * 4;
-  const baseMultiple = 8 + (state.brand / 100) * 6 + (state.osMaturity / 100) * 4; // 8..18
+  const baseMultiple = 8 + (state.brand / 100) * 6 + (state.osMaturity / 100) * 4;
   const scale = 1 + state.share * 1.5;
   const osBonus = state.osMode === "open" ? 1 + (state.devAttract / 100) * 0.15 : 1.0;
 
@@ -334,32 +364,30 @@ function fundamentalValue(state, profit) {
   return Math.round(Math.max(floor, computed));
 }
 
-// ---------- Simulation step ----------
+// ---------- Simulation ----------
 function runQuarter(state) {
   const shareBefore = state.share;
 
-  // World evolution
   updateMacro(state);
   maybeAdvanceTouch(state);
   advanceOS(state);
 
-  // Costs
   const bom = unitCost(state.year, state.tier, state.perf);
 
-  // Buy components
+  // buy components
   const buyCost = state.buy * bom;
   state.stock += state.buy;
   state.cash -= buyCost;
 
-  // Fixed costs
+  // fixed costs
   const fixed = Math.round(25_000 + state.capacity * 6 + (state.osMode !== "license" ? 12_000 : 6_000));
   state.cash -= fixed;
 
-  // Spend R&D and marketing
+  // spend R&D + marketing
   state.cash -= state.rnd;
   state.cash -= state.marketing;
 
-  // Production
+  // production
   const producible = Math.min(state.capacity, state.stock);
   state.stock -= producible;
 
@@ -367,28 +395,28 @@ function runQuarter(state) {
   const goodUnits = Math.max(0, Math.round(producible * (1 - defect)));
   const badUnits = producible - goodUnits;
 
-  // Demand and sales
+  // sales
   const demand = demandEstimate(state);
   const sold = Math.min(goodUnits, demand);
 
-  // Revenue
+  // revenue
   const ch = CH[state.channel];
   const revenue = Math.round(sold * state.price * ch.margin);
 
-  // Royalties if license OS
+  // royalties for licensed OS
   const royalties = state.osMode === "license" ? Math.round(revenue * state.osRoyaltyRate) : 0;
 
-  // Warranty cost (simplified)
+  // warranty (simplified)
   const warranty = Math.round(badUnits * bom * 0.6);
 
   state.cash += revenue;
   state.cash -= royalties;
   state.cash -= warranty;
 
-  // Interest
+  // interest
   const interest = applyDebtInterest(state);
 
-  // Auto debt safety net (gentler pre-2007)
+  // auto debt safety net
   let newDebt = 0;
   if (state.cash < 0) {
     const limit = state.year < 2007 ? 400_000 : 250_000;
@@ -398,14 +426,12 @@ function runQuarter(state) {
     state.cash += needed;
   }
 
-  // Profit (approx)
   const profit = revenue - buyCost - fixed - state.rnd - state.marketing - royalties - warranty - interest;
 
-  // Market share update (simplified)
+  // share
   const totalMarket = marketBaseUnits(state.year, state.touch);
   const immediateShare = clamp(0.03 + (sold / Math.max(1, totalMarket)) * 0.9, 0.01, 0.65);
 
-  // Loyalty stabilizes share changes
   const loy = loyalty(state.brand);
   state.share = clamp(
     state.share * (0.85 + loy) + immediateShare * (0.15 + (1 - loy) * 0.35),
@@ -413,17 +439,12 @@ function runQuarter(state) {
     0.65
   );
 
-  // Brand update
   updateBrand(state, sold, demand, defect, profit);
-
-  // Rival pressure evolves
   updateRivals(state, shareBefore);
 
-  // Valuation
   const fundamentals = fundamentalValue(state, profit);
   state.mcap = Math.round(fundamentals * state.macro);
 
-  // Save last report
   state.last = {
     year: state.year,
     q: state.q,
@@ -458,7 +479,7 @@ function runQuarter(state) {
     newDebt,
   };
 
-  // Advance time
+  // advance time
   state.q += 1;
   if (state.q === 5) {
     state.q = 1;
@@ -468,118 +489,244 @@ function runQuarter(state) {
   saveState(state);
 }
 
-// ---------- UI sync ----------
+// ---------- UI coherence ----------
+function applyOSOpenLock(state) {
+  // Lock openness to be coherent with OS mode
+  if (!UI.osOpen) return;
+
+  if (state.osMode === "license") {
+    UI.osOpen.value = "n/a";
+    UI.osOpen.disabled = true;
+  } else if (state.osMode === "closed") {
+    UI.osOpen.value = "closed";
+    UI.osOpen.disabled = true;
+  } else {
+    UI.osOpen.value = "open";
+    UI.osOpen.disabled = true;
+  }
+}
+
 function syncUI(state) {
-  // ✅ EXACTEMENT ce que tu veux
-  UI.kpiDate.textContent = `Année : ${state.year} / Trimestre : Q${state.q}`;
+  // Time
+  if (UI.kpiDate) UI.kpiDate.textContent = `Année : ${state.year} / Trimestre : Q${state.q}`;
 
-  UI.kpiBrand.textContent = `${Math.round(state.brand)}`;
-  UI.kpiCash.textContent = fmtMoney(state.cash);
-  UI.kpiMcap.textContent = fmtMoney(state.mcap);
-  UI.kpiShare.textContent = pct(state.share);
-  UI.kpiMacro.textContent = `Macro × ${state.macro.toFixed(2)}`;
+  // KPIs
+  if (UI.kpiBrand) UI.kpiBrand.textContent = `${Math.round(state.brand)}`;
+  if (UI.kpiCash) UI.kpiCash.textContent = fmtMoney(state.cash);
+  if (UI.kpiMcap) UI.kpiMcap.textContent = fmtMoney(state.mcap);
+  if (UI.kpiShare) UI.kpiShare.textContent = pct(state.share);
 
-  // Inputs (reflect state)
-  UI.tier.value = state.tier;
-  UI.price.value = state.price;
-  UI.perf.value = state.perf;
-  UI.perfVal.textContent = `${state.perf}`;
-  UI.rnd.value = state.rnd;
+  if (UI.kpiMacro) UI.kpiMacro.textContent = `Marché : ${marketLabel(state.macro)}`;
 
-  UI.osMode.value = state.osMode;
-  UI.osOpen.value = state.osMode === "license" ? "n/a" : (state.osMode === "open" ? "open" : "closed");
-  UI.osMaturity.textContent = `${Math.round(state.osMaturity)}`;
-  UI.devAttract.textContent = `${Math.round(state.devAttract)}`;
+  // Inputs
+  if (UI.tier) UI.tier.value = state.tier;
+  if (UI.price) UI.price.value = state.price;
+  if (UI.perf) UI.perf.value = state.perf;
+  if (UI.perfVal) UI.perfVal.textContent = `${state.perf}`;
+  if (UI.rnd) UI.rnd.value = state.rnd;
 
-  UI.capacity.value = state.capacity;
-  UI.qprocess.value = state.qprocess;
-  UI.stock.value = state.stock;
-  UI.buy.value = state.buy;
+  if (UI.osMode) UI.osMode.value = state.osMode;
+  applyOSOpenLock(state);
 
-  UI.mkt.value = state.marketing;
-  UI.channel.value = state.channel;
+  if (UI.osMaturity) UI.osMaturity.textContent = `${Math.round(state.osMaturity)}`;
+  if (UI.devAttract) UI.devAttract.textContent = `${Math.round(state.devAttract)}`;
 
-  // Previews
-  UI.demandPreview.textContent = `${demandEstimate(state)}`;
-  UI.defectPreview.textContent = `${(defectRate(state) * 100).toFixed(1)}%`;
+  if (UI.capacity) UI.capacity.value = state.capacity;
+  if (UI.qprocess) UI.qprocess.value = state.qprocess;
+  if (UI.stock) UI.stock.value = state.stock;
+  if (UI.buy) UI.buy.value = state.buy;
 
-  // Market readout
-  const base = marketBaseUnits(state.year, state.touch);
-  const segPct = Math.round(SEG[state.tier].baseShare * 100);
-  UI.marketReadout.textContent =
-`Marché total estimé : ${base} unités / trimestre
-Segment ${state.tier} : ${segPct}% du marché
-Demande estimée (toi) : ${demandEstimate(state)} unités
-Coût BOM estimé : $${unitCost(state.year, state.tier, state.perf)} / unité
-Tactile : ${state.touch.started ? "oui" : "non"} (intensité ${(state.touch.intensity * 100).toFixed(0)}%)
-Pression rivaux : × ${(1 / state.rivalsPower).toFixed(2)}
+  if (UI.mkt) UI.mkt.value = state.marketing;
+  if (UI.channel) UI.channel.value = state.channel;
+
+  // Player-facing info
+  if (UI.prodAttract) UI.prodAttract.textContent = `${productAttract(state)}`;
+  if (UI.marketInterest) UI.marketInterest.textContent = interestWord(state);
+
+  // Production preview
+  if (UI.defectPreview) UI.defectPreview.textContent = `${(defectRate(state) * 100).toFixed(1)}%`;
+
+  // Market readout (still useful, but not “oracle”: mostly context)
+  if (UI.marketReadout) {
+    const base = marketBaseUnits(state.year, state.touch);
+    const segPct = Math.round(SEG[state.tier].baseShare * 100);
+    const bom = unitCost(state.year, state.tier, state.perf);
+
+    UI.marketReadout.textContent =
+`Contexte (résumé)
+- Marché : ${marketLabel(state.macro)}
+- Taille du marché : ~${base} unités / trimestre
+- Segment ${state.tier} : ~${segPct}% du marché
+
+Coûts (estimation)
+- Coût composants (BOM) : ~$${bom} / unité
+
+Info
+- Révolution tactile : ${state.touch.started ? "en cours" : "pas encore"} (intensité ${(state.touch.intensity * 100).toFixed(0)}%)
 `;
+  }
 
   // Report
-  if (!state.last) return;
+  if (!UI.report) return;
+
+  if (!state.last) {
+    UI.report.textContent = "Lance un trimestre pour voir le bilan.";
+    return;
+  }
 
   UI.report.textContent =
 `Bilan ${state.last.year} Q${state.last.q}
 
-Produit : ${state.last.tier} | Prix : $${state.last.price} | Perf : ${state.last.perf}
-OS : ${state.last.osMode} | Maturité : ${Math.round(state.last.osMaturity)} | Dev : ${Math.round(state.last.devAttract)}
+Entreprise
+- Réputation : ${Math.round(state.last.brandAfter)}/100
+- Parts de marché : ${(state.last.shareBefore * 100).toFixed(1)}% → ${(state.last.shareAfter * 100).toFixed(1)}%
+- Marché : ${marketLabel(state.last.macro)} | Valo : ${fmtMoney(state.mcap)}
 
-Production : ${state.last.producible} (bons : ${state.last.goodUnits}, défauts/SAV : ${state.last.badUnits})
-Demande : ${state.last.demand} | Ventes : ${state.last.sold}
+Produit & ventes
+- Segment : ${state.last.tier} | Prix : $${state.last.price} | Qualité : ${state.last.perf}/100
+- Attractivité produit : ${productAttract(state)}/100 | Intérêt marché (estim.) : ${interestWord(state)}
+- Demande (interne) : ${state.last.demand} | Ventes : ${state.last.sold}
 
-CA : ${fmtMoney(state.last.revenue)}
-Royalties OS : ${fmtMoney(state.last.royalties)}
-Achats composants : ${fmtMoney(state.last.buyCost)}
-Coûts fixes : ${fmtMoney(state.last.fixed)}
-SAV (garantie) : ${fmtMoney(state.last.warranty)}
-Intérêts : ${fmtMoney(state.last.interest)}
+Production
+- Assemblé : ${state.last.producible} (bons : ${state.last.goodUnits}, défauts/SAV : ${state.last.badUnits})
+- SAV coût : ${fmtMoney(state.last.warranty)}
 
-Profit (approx) : ${fmtMoney(state.last.profit)}
-Cash : ${fmtMoney(state.last.cash)} | Dette : ${fmtMoney(state.last.debt)}${state.last.newDebt ? ` (nouvelle dette : ${fmtMoney(state.last.newDebt)})` : ""}
+Finances
+- CA : ${fmtMoney(state.last.revenue)}
+- Achats composants : ${fmtMoney(state.last.buyCost)}
+- Coûts fixes : ${fmtMoney(state.last.fixed)}
+- Royalties OS : ${fmtMoney(state.last.royalties)}
+- Intérêts : ${fmtMoney(state.last.interest)}
+- Profit (approx) : ${fmtMoney(state.last.profit)}
+- Cash : ${fmtMoney(state.last.cash)} | Dette : ${fmtMoney(state.last.debt)}${state.last.newDebt ? ` (nouvelle dette : ${fmtMoney(state.last.newDebt)})` : ""}
 
-IM : ${Math.round(state.last.brandAfter)}
-Parts : ${(state.last.shareBefore * 100).toFixed(1)}% → ${(state.last.shareAfter * 100).toFixed(1)}%
-Macro : ×${state.last.macro.toFixed(2)} | Valo : ${fmtMoney(state.mcap)}
+Tech
+- OS : ${state.last.osMode} | Maturité : ${Math.round(state.last.osMaturity)}/100 | Écosystème dev : ${Math.round(state.last.devAttract)}/100
 `;
+}
+
+// ---------- Help tips ----------
+function setupTips() {
+  let bubble = null;
+
+  function closeTip() {
+    if (bubble) bubble.remove();
+    bubble = null;
+  }
+
+  document.addEventListener("click", (e) => {
+    const tipTarget = e.target.closest(".has-tip");
+
+    // close if clicking outside
+    if (!tipTarget) {
+      if (bubble && !e.target.closest(".tip-bubble")) closeTip();
+      return;
+    }
+
+    e.preventDefault();
+
+    const txt = tipTarget.getAttribute("data-tip") || "";
+    const title = tipTarget.textContent.trim() || "Info";
+
+    closeTip();
+
+    bubble = document.createElement("div");
+    bubble.className = "tip-bubble";
+    bubble.innerHTML = `
+      <button class="tip-close" aria-label="Fermer">✕</button>
+      <div class="tip-title">${title}</div>
+      <div>${txt}</div>
+    `;
+
+    bubble.querySelector(".tip-close").addEventListener("click", closeTip);
+    document.body.appendChild(bubble);
+  });
 }
 
 // ---------- Events ----------
 function bindEvents(state) {
   // Product
-  UI.tier.addEventListener("change", () => { state.tier = UI.tier.value; saveState(state); syncUI(state); });
-  UI.price.addEventListener("input", () => { state.price = Number(UI.price.value); saveState(state); syncUI(state); });
-  UI.perf.addEventListener("input", () => { state.perf = Number(UI.perf.value); saveState(state); syncUI(state); });
-  UI.rnd.addEventListener("input", () => { state.rnd = Number(UI.rnd.value); saveState(state); syncUI(state); });
+  UI.tier?.addEventListener("change", () => {
+    state.tier = UI.tier.value;
+    saveState(state);
+    syncUI(state);
+  });
 
-  UI.osMode.addEventListener("change", () => {
+  UI.price?.addEventListener("input", () => {
+    state.price = Number(UI.price.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.perf?.addEventListener("input", () => {
+    state.perf = Number(UI.perf.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.rnd?.addEventListener("input", () => {
+    state.rnd = Number(UI.rnd.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.osMode?.addEventListener("change", () => {
     state.osMode = UI.osMode.value;
-    UI.osOpen.value = state.osMode === "license" ? "n/a" : (state.osMode === "open" ? "open" : "closed");
+    applyOSOpenLock(state);
     saveState(state);
     syncUI(state);
   });
 
   // Production
-  UI.capacity.addEventListener("input", () => { state.capacity = Number(UI.capacity.value); saveState(state); syncUI(state); });
-  UI.qprocess.addEventListener("input", () => { state.qprocess = Number(UI.qprocess.value); saveState(state); syncUI(state); });
-  UI.stock.addEventListener("input", () => { state.stock = Number(UI.stock.value); saveState(state); syncUI(state); });
-  UI.buy.addEventListener("input", () => { state.buy = Number(UI.buy.value); saveState(state); syncUI(state); });
+  UI.capacity?.addEventListener("input", () => {
+    state.capacity = Number(UI.capacity.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.qprocess?.addEventListener("input", () => {
+    state.qprocess = Number(UI.qprocess.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.stock?.addEventListener("input", () => {
+    state.stock = Number(UI.stock.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.buy?.addEventListener("input", () => {
+    state.buy = Number(UI.buy.value);
+    saveState(state);
+    syncUI(state);
+  });
 
   // Market
-  UI.mkt.addEventListener("input", () => { state.marketing = Number(UI.mkt.value); saveState(state); syncUI(state); });
-  UI.channel.addEventListener("change", () => { state.channel = UI.channel.value; saveState(state); syncUI(state); });
+  UI.mkt?.addEventListener("input", () => {
+    state.marketing = Number(UI.mkt.value);
+    saveState(state);
+    syncUI(state);
+  });
+
+  UI.channel?.addEventListener("change", () => {
+    state.channel = UI.channel.value;
+    saveState(state);
+    syncUI(state);
+  });
 
   // Actions
-  UI.btnNext.addEventListener("click", () => {
+  UI.btnNext?.addEventListener("click", () => {
     runQuarter(state);
     syncUI(state);
   });
 
-  UI.btnSave.addEventListener("click", () => {
+  UI.btnSave?.addEventListener("click", () => {
     saveState(state);
     alert("Sauvé ✅");
   });
 
-  UI.btnReset.addEventListener("click", () => {
+  UI.btnReset?.addEventListener("click", () => {
     if (!confirm("Reset la run ?")) return;
     const fresh = defaultState();
     Object.keys(state).forEach((k) => delete state[k]);
@@ -604,6 +751,8 @@ function bindEvents(state) {
 
 // ---------- Boot ----------
 const state = loadState();
+setupTips();
 bindEvents(state);
+applyOSOpenLock(state);
 syncUI(state);
 saveState(state);
