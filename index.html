@@ -2,871 +2,271 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b0f18">
   <title>Smartphone Tycoon</title>
 
-  <style>
-    :root{
-      /* Thème (remplacé par JS selon la palette) */
-      --accent:#6c7cff;
-      --accent2:#b6ff5a;
-
-      --bg:#0b0f18;
-      --panel:#121827;
-      --panel-soft:#0f1422;
-      --interactive:#1b2242;
-      --border:#232b45;
-
-      --text:#e6e9f2;
-      --muted:#9aa3bd;
-
-      --danger:#ff5c7a;
-
-      /* dérivés visibles */
-      --action-bg: rgba(255,255,255,0.14);
-      --action-bg-strong: rgba(255,255,255,0.18);
-      --action-border: rgba(108,124,255,0.55);
-      --action-border-strong: rgba(108,124,255,0.85);
-      --focus-ring: rgba(108,124,255,0.30);
-    }
-
-    *{ box-sizing:border-box; }
-
-    /* PATCH 1: éviter le blanc en haut */
-    html, body{
-      height:100%;
-      background: var(--bg);
-    }
-
-    body{
-      margin:0;
-      color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,sans-serif;
-
-      /* PATCH 2: fond plus brand (plus visible) */
-      background:
-        radial-gradient(1000px 700px at 20% -10%, var(--focus-ring), transparent 60%),
-        radial-gradient(900px 700px at 80% -10%, rgba(255,255,255,0.05), transparent 60%),
-        linear-gradient(180deg, var(--bg) 0%, rgba(0,0,0,0.30) 100%);
-    }
-
-    /* ================= INTRO ================= */
-    #intro-screen{
-      position:fixed;
-      inset:0;
-      z-index:9999;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-
-      background:
-        radial-gradient(1200px 900px at 50% -200px, rgba(255,255,255,0.08), transparent 55%),
-        radial-gradient(900px 700px at 20% 10%, rgba(255,255,255,0.05), transparent 60%),
-        radial-gradient(900px 700px at 80% 10%, rgba(255,255,255,0.04), transparent 60%),
-        linear-gradient(180deg, var(--bg) 0%, rgba(0,0,0,0.35) 100%);
-    }
-
-    .intro-card{
-      width:100%;
-      max-width:480px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
-        rgba(18,24,39,0.80);
-      border:1px solid rgba(255,255,255,0.10);
-      border-radius:22px;
-      padding:22px;
-      box-shadow:0 18px 60px rgba(0,0,0,0.50);
-      position:relative;
-      overflow:hidden;
-    }
-
-    .intro-card::before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      background:
-        radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.08), transparent 60%),
-        radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.06), transparent 60%),
-        linear-gradient(135deg, rgba(255,255,255,0.08), transparent 55%);
-      pointer-events:none;
-    }
-
-    .intro-title{ position:relative; margin:0 0 6px; font-size:22px; letter-spacing:.4px; }
-    .intro-sub{ position:relative; margin:0 0 14px; color:var(--muted); font-size:12px; line-height:1.35; }
-
-    .intro-card label{
-      position:relative;
-      display:block;
-      margin:12px 0 6px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .intro-card input[type="text"]{
-      position:relative;
-      width:100%;
-      border-radius:14px;
-      padding:12px 12px;
-      font-size:15px;
-      border:1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.12);
-      color:var(--text);
-      outline:none;
-    }
-    .intro-card input[type="text"]:focus{
-      border-color: var(--action-border-strong);
-      box-shadow: 0 0 0 2px var(--focus-ring);
-    }
-
-    .palette-grid{
-      position:relative;
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-top:10px;
-    }
-
-    .palette{
-      height:44px;
-      border-radius:14px;
-      border:2px solid rgba(255,255,255,0.10);
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-      box-shadow:0 10px 24px rgba(0,0,0,0.25);
-    }
-    .palette.selected{
-      border-color: rgba(255,255,255,0.95);
-      box-shadow:0 12px 30px rgba(0,0,0,0.35);
-    }
-    .palette .dot{
-      position:absolute;
-      right:9px;
-      top:9px;
-      width:11px;
-      height:11px;
-      border-radius:999px;
-      background: rgba(255,255,255,0.00);
-      border:1px solid rgba(255,255,255,0.45);
-      backdrop-filter: blur(10px);
-    }
-    .palette.selected .dot{
-      background: rgba(255,255,255,0.95);
-      border-color: rgba(255,255,255,0.95);
-    }
-
-    .intro-actions{ position:relative; display:flex; gap:10px; margin-top:16px; }
-    .btn{ width:100%; padding:13px 14px; border-radius:14px; border:0; font-weight:900; font-size:16px; letter-spacing:.2px; }
-
-    .btn-primary{
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color:#0b0f18;
-      box-shadow:0 10px 26px rgba(0,0,0,0.22);
-      transition: transform 0.08s ease;
-    }
-    .btn-primary:active{ transform: scale(0.985); }
-
-    .intro-note{ position:relative; margin-top:10px; color:var(--muted); font-size:11px; line-height:1.35; }
-
-    /* ================= HEADER ================= */
-    header{
-      position:sticky;
-      top:0;
-      z-index:20;
-      border-bottom:1px solid rgba(255,255,255,0.10);
-      background: rgba(10,12,18,0.55);
-      backdrop-filter: blur(14px);
-
-      /* PATCH 1: safe-area */
-      padding-top: env(safe-area-inset-top);
-    }
-
-    .brand-banner{
-      padding: 12px 12px 10px;
-
-      /* PATCH 1: safe-area (mieux) */
-      padding-top: calc(12px + env(safe-area-inset-top));
-
-      background:
-        radial-gradient(1200px 220px at 20% 0%, rgba(255,255,255,0.12), transparent 60%),
-        radial-gradient(1200px 220px at 80% 0%, rgba(255,255,255,0.10), transparent 60%),
-        linear-gradient(135deg, var(--accent), var(--accent2));
-      color: rgba(12,14,18,0.92);
-    }
-
-    .brand-banner .company{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      font-weight:950;
-      letter-spacing:.4px;
-      font-size:14px;
-    }
-
-    .brand-banner .tag{
-      font-weight:800;
-      font-size:11px;
-      opacity:.88;
-      padding:6px 10px;
-      border-radius:999px;
-      background: rgba(255,255,255,0.30);
-      border: 1px solid rgba(255,255,255,0.22);
-      color: rgba(12,14,18,0.88);
-      white-space:nowrap;
-    }
-
-    .top-row{
-      padding:10px 12px 12px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .kpi{ display:flex; flex-wrap:wrap; gap:8px; }
-
-    .pill{
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
-        rgba(18,24,39,0.70);
-      border: 1px solid rgba(255,255,255,0.10);
-      padding:8px 10px;
-      border-radius:999px;
-      font-size:11px;
-      color:var(--text);
-      display:inline-flex;
-      align-items:baseline;
-      gap:6px;
-      line-height:1.2;
-
-      /* PATCH 2: un peu plus “présent” */
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
-    }
-
-    .pill b{ font-weight:900; color: var(--accent2); } /* PATCH 2 */
-    .pill.muted{ color: var(--muted); }
-    .muted{ color: var(--muted); font-size:12px; }
-
-    /* ================= MAIN ================= */
-    main{
-      padding:14px;
-      padding-bottom:110px;
-      max-width:920px;
-      margin:0 auto;
-    }
-
-    .card{
-      background:
-        radial-gradient(900px 320px at 20% 0%, var(--focus-ring), transparent 70%),
-        radial-gradient(900px 280px at 80% 0%, rgba(255,255,255,0.05), transparent 70%),
-        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
-        var(--panel);
-      border:1px solid rgba(255,255,255,0.10);
-      border-radius:18px;
-      padding:16px;
-      margin-bottom:16px;
-      box-shadow:0 18px 46px rgba(0,0,0,0.35);
-    }
-
-    .card h3{
-      margin:0 0 12px;
-      font-size:15px;
-      letter-spacing:.4px;
-      color: var(--accent);
-      font-weight:950;
-    }
-
-    .row{ display:flex; gap:12px; flex-wrap:wrap; }
-    .row > *{ flex:1; min-width:160px; }
-
-    label{ display:block; margin:10px 0 6px; font-size:12px; color:var(--muted); }
-
-    input[type="number"]{
-      width:100%;
-      border-radius:12px;
-      padding:10px;
-      font-size:14px;
-      color:var(--text);
-      border:1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-    }
-
-    input[type="range"]{
-      width:100%;
-      height:26px;
-      background:transparent;
-    }
-
-    input:focus{
-      outline:none;
-      border-color: var(--action-border-strong);
-      box-shadow: 0 0 0 2px var(--focus-ring);
-    }
-
-    /* ================= CHIPS ================= */
-    .chip-group{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin: 6px 0 4px;
-    }
-
-    .chip{
-      flex: 1;
-      min-width: 120px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
-      font-weight: 900;
-      font-size: 13px;
-      text-align: center;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
-      transition: transform .08s ease;
-    }
-    .chip:active{ transform: scale(0.99); }
-
-    .chip small{
-      display:block;
-      margin-top:3px;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--muted);
-      line-height: 1.15;
-    }
-
-    .chip.active{
-      border-color: var(--action-border-strong);
-      background:
-        radial-gradient(700px 200px at 30% 0%, var(--focus-ring), transparent 70%),
-        linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
-      box-shadow:
-        0 0 0 2px var(--focus-ring),
-        inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-
-    /* zones informatives */
-    .info-block{
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)),
-        rgba(15,20,34,0.65);
-      border:1px solid rgba(255,255,255,0.10);
-      border-radius:14px;
-      padding:12px;
-      margin-top:12px;
-    }
-
-    /* zones action: super visibles + teintées */
-    .interactive-block{
-      background:
-        radial-gradient(900px 300px at 30% 0%, rgba(255,255,255,0.08), transparent 70%),
-        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
-        var(--interactive);
-      border:1px solid rgba(255,255,255,0.18);
-      border-radius:16px;
-      padding:12px;
-      margin-top:12px;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.05),
-        0 12px 28px rgba(0,0,0,0.30);
-    }
-
-    .interactive-block input[type="number"]{
-      background: rgba(255,255,255,0.18);
-      border: 1px solid var(--action-border-strong);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-
-    .interactive-block input[type="range"]{ accent-color: var(--accent); }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:14px;
-    }
-
-    .actions button{
-      flex:1;
-      padding:13px 14px;
-      border-radius:14px;
-      border:0;
-      font-weight:950;
-      font-size:14px;
-    }
-
-    .primary{
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: rgba(12,14,18,0.92);
-      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
-      transition: transform 0.08s ease;
-    }
-    .primary:active{ transform: scale(0.985); }
-
-    .secondary{
-      background: rgba(255,255,255,0.08);
-      border:1px solid rgba(255,255,255,0.14);
-      color: var(--text);
-    }
-
-    .danger{
-      background: var(--danger);
-      color: #0b0f18;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
-    }
-
-    nav{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      z-index:30;
-      padding:12px;
-      display:flex;
-      gap:8px;
-      background: rgba(10,12,18,0.60);
-      border-top:1px solid rgba(255,255,255,0.10);
-      backdrop-filter: blur(14px);
-    }
-
-    nav button{
-      flex:1;
-      padding:12px 10px;
-      border-radius:14px;
-      background: rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.12);
-      color: var(--text);
-      font-weight: 900;
-    }
-
-    nav button.active{
-      background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
-      border-color: var(--action-border-strong);
-      box-shadow: 0 0 0 2px var(--focus-ring);
-    }
-
-    .badge{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:12px 12px;
-      border-radius:14px;
-      background: rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.12);
-      color: var(--text);
-      font-size:13px;
-      margin-top:10px;
-    }
-    .badge b{ color: var(--accent2); font-size:16px; font-weight:950; }
-
-    .mini-bar{
-      height:8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.06);
-      overflow:hidden;
-      margin-top:8px;
-    }
-    .mini-bar > span{
-      display:block;
-      height:100%;
-      width:10%;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius:999px;
-    }
-
-    pre{
-      margin:0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: rgba(255,255,255,0.05);
-      border:1px solid rgba(255,255,255,0.12);
-      padding:12px;
-      border-radius:14px;
-      color: var(--text);
-      line-height:1.35;
-      font-size:12px;
-    }
-
-    /* Tooltips */
-    .has-tip{
-      cursor:pointer;
-      text-decoration:none;
-      border-bottom:1px dotted rgba(255,255,255,0.35);
-      padding-bottom:1px;
-    }
-
-    .tip-bubble{
-      position:fixed;
-      z-index:9999;
-      left:12px; right:12px;
-      bottom:92px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
-        rgba(15,20,34,0.92);
-      border:1px solid rgba(255,255,255,0.16);
-      border-radius:14px;
-      padding:12px 12px;
-      color: var(--text);
-      font-size:12px;
-      line-height:1.35;
-      box-shadow:0 14px 40px rgba(0,0,0,0.45);
-    }
-
-    .tip-bubble .tip-title{
-      font-weight:950;
-      color: var(--accent2);
-      margin-bottom:6px;
-    }
-
-    .tip-bubble .tip-close{
-      position:absolute;
-      top:8px;
-      right:10px;
-      background:transparent;
-      border:0;
-      color: rgba(255,255,255,0.65);
-      font-size:18px;
-    }
-  </style>
+  <link rel="stylesheet" href="./style.css?v=1">
 </head>
 
 <body>
 
-<!-- INTRO -->
-<div id="intro-screen" aria-hidden="true">
-  <div class="intro-card">
-    <h1 class="intro-title">Créer votre entreprise</h1>
-    <p class="intro-sub">
-      Donne un nom à ton entreprise et choisis une palette.
-      <br>Ce choix est <b>définitif</b> (sauf reset).
-    </p>
+  <!-- INTRO -->
+  <div id="intro-screen" aria-hidden="true">
+    <div class="intro-card">
+      <h1 class="intro-title">Créer votre entreprise</h1>
+      <p class="intro-sub">
+        Donne un nom à ton entreprise et choisis une palette.<br>
+        Ce choix est <b>définitif</b> (sauf reset).
+      </p>
 
-    <label for="company-name">Nom de l’entreprise</label>
-    <input id="company-name" type="text" placeholder="Ex : Nova Mobile" maxlength="28" />
+      <label for="company-name">Nom de l’entreprise</label>
+      <input id="company-name" type="text" placeholder="Ex : Nova Mobile" maxlength="28" />
 
-    <label>Palette de marque (8 choix)</label>
-    <div class="palette-grid" id="palette-grid"></div>
+      <label>Palette de marque (8 choix)</label>
+      <div class="palette-grid" id="palette-grid"></div>
 
-    <div class="intro-actions">
-      <button class="btn btn-primary" id="start-btn">Créer mon entreprise</button>
-    </div>
+      <button class="btn btn-primary" id="start-btn" type="button">Créer mon entreprise</button>
 
-    <div class="intro-note">
-      Astuce : choisis une palette lisible — elle te suivra toute la partie.
-    </div>
-  </div>
-</div>
-
-<!-- GAME -->
-<header id="header" style="display:none">
-  <div class="brand-banner">
-    <div class="company">
-      <div id="company-title">Entreprise</div>
-      <div class="tag">2000 → 2030</div>
+      <div class="intro-note">
+        Astuce : choisis une palette lisible — elle te suivra toute la partie.
+      </div>
     </div>
   </div>
 
-  <div class="top-row">
-    <div class="kpi">
-      <span class="pill" id="kpi-date">Année : 2000 / Trimestre : Q1</span>
-
-      <span class="pill">
-        <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance, la tolérance aux défauts et l’efficacité du marketing.">
-          Réputation
-        </span>
-        <b id="kpi-brand">35</b><span class="muted">/100</span>
-      </span>
-
-      <span class="pill">
-        <span class="has-tip" data-tip="Trésorerie disponible. Si tu passes sous 0, tu es en difficulté.">
-          Trésorerie
-        </span>
-        <b id="kpi-cash">$250.0k</b>
-      </span>
-
-      <span class="pill">
-        <span class="has-tip" data-tip="Valorisation (bourse). Dépend surtout des profits, de la réputation et du marché.">
-          Valorisation
-        </span>
-        <b id="kpi-mcap">$2.00M</b>
-      </span>
-
-      <span class="pill">
-        <span class="has-tip" data-tip="Part de marché estimée ce trimestre.">
-          Parts de marché
-        </span>
-        <b id="kpi-share">8.0%</b>
-      </span>
-
-      <span class="pill muted">
-        <span class="has-tip" data-tip="Conjoncture globale. Impacte surtout la valorisation et un peu le volume total.">
-          Marché
-        </span>
-        <span id="kpi-macro-value">Marché normal</span>
-      </span>
-    </div>
-  </div>
-</header>
-
-<main id="main" style="display:none">
-
-  <!-- PRODUIT -->
-  <section class="card" id="screen-product">
-    <h3>Produit & OS</h3>
-
-    <div class="interactive-block">
-      <div class="row">
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Choisis ton segment. Ça impacte les attentes clients et les volumes potentiels.">
-              Positionnement produit
-            </span>
-          </label>
-
-          <!-- CHIPS: tier -->
-          <div class="chip-group" id="tier-chips">
-            <button class="chip" type="button" data-value="budget">
-              Budget
-              <small>Volume ↑ / marge ↓</small>
-            </button>
-            <button class="chip" type="button" data-value="mainstream">
-              Mainstream
-              <small>Équilibre</small>
-            </button>
-            <button class="chip" type="button" data-value="premium">
-              Premium
-              <small>Marge ↑ / volume ↓</small>
-            </button>
-          </div>
-
-          <div class="muted">Le segment visé influence les attentes des clients.</div>
-
-          <label>
-            <span class="has-tip" data-tip="Qualité produit (0–100). Plus haut = produit plus désirable, mais plus coûteux.">
-              Qualité produit (0–100)
-            </span>
-          </label>
-          <input type="range" id="perf" min="10" max="100" value="55" />
-          <div class="muted">Score : <b id="perf-val">55</b></div>
-        </div>
-
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Prix de vente. Plus haut = marge ↑ mais volume ↓ si trop cher.">
-              Prix de vente (USD)
-            </span>
-          </label>
-          <input type="number" id="price" min="50" step="10" value="399" />
-          <div class="muted">Plus haut = marge ↑, volume ↓</div>
-
-          <label>
-            <span class="has-tip" data-tip="R&D trimestrielle. Sert à développer/fiabiliser l’OS (si propriétaire) et améliorer la techno.">
-              Budget R&amp;D (USD)
-            </span>
-          </label>
-          <input type="number" id="rnd" min="0" step="10000" value="30000" />
-          <div class="muted">Investissement trimestriel.</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>
-            <span class="has-tip" data-tip="OS sous licence : rapide mais royalties. OS propriétaire : long et coûteux, mais indépendant.">
-              Stratégie OS
-            </span>
-          </label>
-
-          <!-- CHIPS: OS -->
-          <div class="chip-group" id="os-chips">
-            <button class="chip" type="button" data-value="license">
-              Sous licence
-              <small>Rapide / royalties</small>
-            </button>
-            <button class="chip" type="button" data-value="closed">
-              Propriétaire fermé
-              <small>Premium / long R&amp;D</small>
-            </button>
-            <button class="chip" type="button" data-value="open">
-              Propriétaire ouvert
-              <small>Très long / licences</small>
-            </button>
-          </div>
-
-          <div class="muted">
-            <span class="has-tip" data-tip="Maturité OS (0–100). Plus haut = stabilité et satisfaction client.">
-              Maturité OS
-            </span> :
-            <b id="os-maturity">10</b>/100
-          </div>
-        </div>
-
-        <div id="dev-row">
-          <label>
-            <span class="has-tip" data-tip="Écosystème d’apps (0–100). Plus haut = plus d’apps/partenaires, surtout utile si OS propriétaire (open).">
-              Écosystème d’apps
-            </span>
-          </label>
-
-          <div class="muted" style="margin-top:2px;">
-            <b id="dev-attract">10</b>/100
-          </div>
-
-          <div class="mini-bar" aria-label="Progression écosystème d'apps">
-            <span id="dev-bar" style="width:10%"></span>
-          </div>
-
-          <div class="muted">Impact surtout si OS propriétaire (surtout ouvert).</div>
-        </div>
+  <!-- GAME -->
+  <header id="header" style="display:none">
+    <div class="brand-banner">
+      <div class="company">
+        <div id="company-title">Entreprise</div>
+        <div class="tag">2000 → 2030</div>
       </div>
     </div>
 
-    <div class="info-block">
-      <div class="badge">
-        <span class="has-tip" data-tip="Attractivité (0–100) : résumé prix + qualité + réputation.">
-          Attractivité produit
+    <div class="top-row">
+      <div class="kpi">
+        <span class="pill" id="kpi-date">Année : 2000 / Trimestre : Q1</span>
+
+        <span class="pill">
+          <span class="has-tip" data-tip="Réputation de l’entreprise (0–100). Influence la confiance et la tolérance du marché.">
+            Réputation
+          </span>
+          <b id="kpi-brand">35</b><span class="pill-suffix">/100</span>
         </span>
-        <b><span id="prod-attract">0</span>/100</b>
+
+        <span class="pill">
+          <span class="has-tip" data-tip="Trésorerie disponible. Si tu passes sous 0, tu es en difficulté.">
+            Trésorerie
+          </span>
+          <b id="kpi-cash">$250.0k</b>
+        </span>
+
+        <span class="pill">
+          <span class="has-tip" data-tip="Valorisation (bourse). Dépend des profits, de la réputation et du marché.">
+            Valorisation
+          </span>
+          <b id="kpi-mcap">$2.00M</b>
+        </span>
+
+        <span class="pill">
+          <span class="has-tip" data-tip="Part de marché estimée ce trimestre.">
+            Parts de marché
+          </span>
+          <b id="kpi-share">8.0%</b>
+        </span>
+
+        <span class="pill pill-muted">
+          <span class="has-tip" data-tip="Conjoncture globale (qualitative). Impacte le volume total et la valorisation.">
+            Marché
+          </span>
+          <span id="kpi-macro-value">Marché normal</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" style="display:none">
+
+    <!-- PRODUIT -->
+    <section class="card" id="screen-product">
+      <h3>Produit &amp; OS</h3>
+
+      <div class="interactive-block">
+        <div class="row">
+          <div>
+            <label>
+              <span class="has-tip" data-tip="Choisis ton segment. Impacte les attentes clients et les volumes potentiels.">
+                Positionnement produit
+              </span>
+            </label>
+
+            <div class="chip-group" id="tier-chips">
+              <button class="chip" type="button" data-value="budget">Budget<small>Volume ↑ / marge ↓</small></button>
+              <button class="chip" type="button" data-value="mainstream">Mainstream<small>Équilibre</small></button>
+              <button class="chip" type="button" data-value="premium">Premium<small>Marge ↑ / volume ↓</small></button>
+            </div>
+
+            <label>
+              <span class="has-tip" data-tip="Qualité produit (0–100). Plus haut = produit plus désirable, mais plus coûteux.">
+                Qualité produit (0–100)
+              </span>
+            </label>
+            <input type="range" id="perf" min="10" max="100" value="55" />
+            <div class="muted">Score : <b id="perf-val">55</b></div>
+          </div>
+
+          <div>
+            <label>
+              <span class="has-tip" data-tip="Prix de vente. Plus haut = marge ↑ mais volume ↓ si trop cher.">
+                Prix de vente (USD)
+              </span>
+            </label>
+            <input type="number" id="price" min="50" step="10" value="399" />
+
+            <label>
+              <span class="has-tip" data-tip="R&D trimestrielle. Développe/fiabilise l’OS (si propriétaire) et améliore la techno.">
+                Budget R&amp;D (USD)
+              </span>
+            </label>
+            <input type="number" id="rnd" min="0" step="10000" value="30000" />
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <label>
+          <span class="has-tip" data-tip="Sous licence : rapide mais royalties. Propriétaire : long et coûteux, mais indépendant.">
+            Stratégie OS
+          </span>
+        </label>
+
+        <div class="chip-group" id="os-chips">
+          <button class="chip" type="button" data-value="license">Sous licence<small>Rapide / royalties</small></button>
+          <button class="chip" type="button" data-value="closed">Propriétaire fermé<small>Premium / long R&amp;D</small></button>
+          <button class="chip" type="button" data-value="open">Propriétaire ouvert<small>Très long / licences</small></button>
+        </div>
+
+        <div class="muted">
+          <span class="has-tip" data-tip="Maturité OS (0–100). Plus haut = stabilité et satisfaction client.">Maturité OS</span> :
+          <b id="os-maturity">10</b>/100
+        </div>
+
+        <div class="muted">
+          <span class="has-tip" data-tip="Écosystème d’apps (0–100). Plus haut = plus d’apps/partenaires (utile surtout si OS propriétaire).">Écosystème d’apps</span> :
+          <b id="dev-attract">10</b>/100
+        </div>
+
+        <div class="mini-bar" aria-label="Écosystème d'apps">
+          <span id="dev-bar" style="width:10%"></span>
+        </div>
       </div>
 
-      <div class="badge">
-        <span class="has-tip" data-tip="Indication qualitative (pas une certitude) de l'intérêt global du marché pour ton offre.">
-          Intérêt du marché (estim.)
-        </span>
-        <b id="market-interest">—</b>
+      <div class="info-block">
+        <div class="badge">
+          <span class="has-tip" data-tip="Attractivité (0–100) = résumé prix + qualité + réputation (estimatif).">
+            Attractivité produit
+          </span>
+          <b><span id="prod-attract">0</span>/100</b>
+        </div>
+
+        <div class="badge">
+          <span class="has-tip" data-tip="Indication qualitative (pas une certitude) de l'intérêt global du marché pour ton offre.">
+            Intérêt du marché (estim.)
+          </span>
+          <b id="market-interest">—</b>
+        </div>
+
+        <div class="actions">
+          <button class="secondary" id="btn-save" type="button">Sauver</button>
+          <button class="danger" id="btn-reset" type="button">Reset run</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTION -->
+    <section class="card" id="screen-production" style="display:none">
+      <h3>Production</h3>
+
+      <div class="interactive-block">
+        <div class="row">
+          <div>
+            <label>Capacité (unités / trimestre)</label>
+            <input type="number" id="capacity" min="100" step="50" value="1000" />
+          </div>
+          <div>
+            <label>Qualité process (0–100)</label>
+            <input type="range" id="qprocess" min="0" max="100" value="45" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Stock composants (unités)</label>
+            <input type="number" id="stock" min="0" step="100" value="1200" />
+          </div>
+          <div>
+            <label>Achat composants (ce trimestre)</label>
+            <input type="number" id="buy" min="0" step="100" value="1000" />
+          </div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="badge">
+          <span>SAV attendu</span>
+          <b id="defect-preview">0.0%</b>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARCHE -->
+    <section class="card" id="screen-market" style="display:none">
+      <h3>Marché</h3>
+
+      <div class="interactive-block">
+        <div class="row">
+          <div>
+            <label>Marketing (USD)</label>
+            <input type="number" id="mkt" min="0" step="10000" value="20000" />
+          </div>
+          <div>
+            <label>Distribution</label>
+            <select id="channel" class="select">
+              <option value="b2b">B2B (stable, volumes bas)</option>
+              <option value="retail" selected>Retail (standard)</option>
+              <option value="carrier">Opérateurs (volume, marge plus faible)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <pre id="market-readout">…</pre>
+      </div>
+    </section>
+
+    <!-- BILAN -->
+    <section class="card" id="screen-report" style="display:none">
+      <h3>Bilan du trimestre</h3>
+
+      <div class="info-block">
+        <pre id="report">Lance un trimestre pour voir le bilan.</pre>
       </div>
 
       <div class="actions">
-        <button class="secondary" id="btn-save">Sauver</button>
-        <button class="danger" id="btn-reset">Reset run</button>
+        <button id="btn-next" class="btn-primary" type="button">Lancer le trimestre</button>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- PRODUCTION -->
-  <section class="card" id="screen-production" style="display:none">
-    <h3>Production</h3>
+  </main>
 
-    <div class="interactive-block">
-      <div class="row">
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Capacité max assemblable ce trimestre. Plus haut = coûts fixes plus importants.">
-              Capacité (unités / trimestre)
-            </span>
-          </label>
-          <input type="number" id="capacity" min="100" step="50" value="1000" />
-          <div class="muted">Augmenter coûte cher, mais évite d’être limité.</div>
-        </div>
+  <nav id="nav" style="display:none">
+    <button data-screen="product" class="active" type="button">Produit</button>
+    <button data-screen="production" type="button">Prod</button>
+    <button data-screen="market" type="button">Marché</button>
+    <button data-screen="report" type="button">Bilan</button>
+  </nav>
 
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Qualité du process industriel. Plus haut = défauts/SAV ↓.">
-              Qualité process (0–100)
-            </span>
-          </label>
-          <input type="range" id="qprocess" min="0" max="100" value="45" />
-          <div class="muted">Plus haut = SAV ↓</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Stock de composants. Une unité vendue consomme 1 stock.">
-              Stock composants (unités)
-            </span>
-          </label>
-          <input type="number" id="stock" min="0" step="100" value="1200" />
-        </div>
-
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Achat de composants ce trimestre (coûte de la trésorerie).">
-              Achat composants (ce trimestre)
-            </span>
-          </label>
-          <input type="number" id="buy" min="0" step="100" value="1000" />
-        </div>
-      </div>
-    </div>
-
-    <div class="info-block">
-      <div class="badge">
-        <span class="has-tip" data-tip="Estimation du taux de défauts (SAV) sur les ventes du trimestre.">
-          SAV attendu
-        </span>
-        <b id="defect-preview">0.0%</b>
-      </div>
-      <div class="muted" style="margin-top:8px;">
-        Le SAV coûte de l’argent et peut impacter ta Réputation.
-      </div>
-    </div>
-  </section>
-
-  <!-- MARCHE -->
-  <section class="card" id="screen-market" style="display:none">
-    <h3>Marché</h3>
-
-    <div class="interactive-block">
-      <div class="row">
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Budget marketing ce trimestre. Plus efficace si ta Réputation est bonne.">
-              Marketing (USD)
-            </span>
-          </label>
-          <input type="number" id="mkt" min="0" step="10000" value="20000" />
-          <div class="muted">Plus haut = visibilité ↑</div>
-        </div>
-
-        <div>
-          <label>
-            <span class="has-tip" data-tip="Canal de vente. Opérateurs = volume ↑ mais marge ↓.">
-              Distribution
-            </span>
-          </label>
-          <select id="channel" style="width:100%; border-radius:12px; padding:10px; font-size:14px; color:var(--text); border:1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);">
-            <option value="b2b">B2B (stable, volumes bas)</option>
-            <option value="retail" selected>Retail (standard)</option>
-            <option value="carrier">Opérateurs (volume, marge plus faible)</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div class="info-block">
-      <pre id="market-readout">…</pre>
-    </div>
-  </section>
-
-  <!-- BILAN -->
-  <section class="card" id="screen-report" style="display:none">
-    <h3>Bilan du trimestre</h3>
-
-    <div class="info-block">
-      <pre id="report">Lance un trimestre pour voir le bilan.</pre>
-    </div>
-
-    <div class="actions">
-      <button class="primary" id="btn-next">Lancer le trimestre</button>
-    </div>
-  </section>
-
-</main>
-
-<nav id="nav" style="display:none">
-  <button data-screen="product" class="active">Produit</button>
-  <button data-screen="production">Prod</button>
-  <button data-screen="market">Marché</button>
-  <button data-screen="report">Bilan</button>
-</nav>
-
-<script src="./app.js?v=4" defer></script>
+  <script src="./app.js?v=1" defer></script>
 </body>
 </html>
